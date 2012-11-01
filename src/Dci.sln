@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ivento.Dci", "Ivento.Dci\Ivento.Dci.csproj", "{36548BCD-2E27-4F85-9E02-3D742B4EA9C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ivento.Dci.Tests", "Ivento.Dci.Tests\Ivento.Dci.Tests.csproj", "{58079402-44D6-4E31-A092-5967D280B020}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{36548BCD-2E27-4F85-9E02-3D742B4EA9C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36548BCD-2E27-4F85-9E02-3D742B4EA9C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36548BCD-2E27-4F85-9E02-3D742B4EA9C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36548BCD-2E27-4F85-9E02-3D742B4EA9C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58079402-44D6-4E31-A092-5967D280B020}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58079402-44D6-4E31-A092-5967D280B020}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58079402-44D6-4E31-A092-5967D280B020}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58079402-44D6-4E31-A092-5967D280B020}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
