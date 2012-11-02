@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using Should.Fluent;
 
@@ -35,7 +30,7 @@ namespace Ivento.Dci.Tests
 
                 // Assert
                 // Accessing an uninitialized context should throw an exception.
-                var c = Context.Current;
+                Context.Current.Should().Not.Be.Null();
             }
 
             [Test]
@@ -74,7 +69,7 @@ namespace Ivento.Dci.Tests
                 Context.InitializeWithThreadScope();
 
                 // Assert
-                var c = Context.Current;
+                Context.Current.Should().Not.Be.Null();
             }
 
             [Test]

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ImpromptuInterface;
 using Ivento.Dci.Examples.MoneyTransfer.Data;
 
@@ -9,7 +7,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             Context.InitializeWithThreadScope();
 
