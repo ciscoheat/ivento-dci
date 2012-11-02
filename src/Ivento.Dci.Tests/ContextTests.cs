@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -39,13 +40,26 @@ namespace Ivento.Dci.Tests
 
             [Test]
             [ExpectedException(typeof(ArgumentException))]
-            public void ShouldThrowExceptionIfInitializedTwice()
+            public void ShouldThrowExceptionIfThreadScopeInitializedTwice()
             {
                 // Arrange
                 Context.InitializeWithThreadScope();
 
                 // Act
                 Context.InitializeWithThreadScope();
+
+                // Assert
+            }
+
+            [Test]
+            [ExpectedException(typeof(ArgumentException))]
+            public void ShouldThrowExceptionIfCustomStackInitializedTwice()
+            {
+                // Arrange
+                Context.Initialize(new Stack());
+
+                // Act
+                Context.Initialize(new Stack());
 
                 // Assert
             }
@@ -80,7 +94,7 @@ namespace Ivento.Dci.Tests
 
         public class TheExecuteMethod : ContextTests
         {
-            public string TestProperty { get; set; }
+            private const string TestPropertyMessage = "Call me maybe";
 
             [SetUp]
             public void SetUp()
@@ -105,37 +119,93 @@ namespace Ivento.Dci.Tests
             public void ShouldPutTheExecutingObjectAsContext()
             {
                 // Arrange
-                TestProperty = null;
+                var context = new SimpleContext();
 
                 // Act
-                Context.Execute(ExecuteMe);
+                Context.Execute(context.AssignTestPropertyToContext);
 
                 // Assert
-                TestProperty.Should().Equal("Call me maybe");
+                context.TestProperty.Should().Equal(TestPropertyMessage);
             }
 
             [Test]
-            public void ShouldBeExecutedInAThreadStaticContext()
+            public void CanSetContextSpecificallyByASecondParameter()
             {
-                // Arrange                
+                // Arrange
+                var context1 = new SimpleContext();
+                var context2 = new SimpleContext();
 
                 // Act
-                //Context.Execute(ExecuteMe);
+                Context.Execute(context1.AssignTestPropertyToContext, context2);
 
                 // Assert
-                var newThread = new Thread(
-                    () => Assert.Throws(typeof(InvalidOperationException), 
-                        () => { var c = Context.Current; }, StackEmptyMessage));
-
-                newThread.Start();
-                newThread.Join(1000);
+                context2.TestProperty.Should().Equal(TestPropertyMessage);
             }
-            
-            private void ExecuteMe()
-            {
-                var context = Context.As<TheExecuteMethod>();
 
-                context.TestProperty = "Call me maybe";
+            [Test]
+            public void ShouldBeExecutedAsThreadStatic()
+            {
+                var context1 = new SimpleContext();
+                var context2 = new SimpleContext();
+
+                // Arrange                
+                var newThread = new Thread(() => Context.Execute(context2.Wait));
+
+                // Act
+
+                // Start the thread, wait for it to set the context.
+                newThread.Start();
+                Thread.Sleep(10);
+
+                // Test if current context is different from the one in the other thread.
+                Context.Execute(() => context1.TestIfContextDiffersFrom(context2), context1);
+                newThread.Join(30);
+
+                // Assert
+            }
+
+            [Test]
+            public void ShouldReturnAValueIfAFuncIsUsed()
+            {
+                // Arrange
+                var context1 = new SimpleContext();
+
+                // Act
+                var output = Context.ExecuteAndReturn(context1.ReturnAValue);
+
+                // Assert
+                output.Should().Equal(TestPropertyMessage);
+            }
+
+            /// <summary>
+            /// Methods in here should not be made static because this instantiated class is used as context.
+            /// </summary>
+            private class SimpleContext
+            {
+                internal string TestProperty { get; private set; }
+
+                internal void AssignTestPropertyToContext()
+                {
+                    var context = Context.CurrentAs<SimpleContext>();
+                    context.TestProperty = TestPropertyMessage;
+                }
+
+                internal void Wait()
+                {
+                    Thread.Sleep(20);
+                }
+
+                internal void TestIfContextDiffersFrom(SimpleContext otherContext)
+                {
+                    var context = Context.CurrentAs<SimpleContext>();
+
+                    context.Should().Not.Equal(otherContext);
+                }
+
+                internal string ReturnAValue()
+                {
+                    return TestPropertyMessage;
+                }
             }
         }
     }

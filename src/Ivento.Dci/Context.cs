@@ -12,7 +12,7 @@ namespace Ivento.Dci
         private static Stack _contextStack;
         private static ThreadLocal<Stack> _threadContextAccessor;
 
-        public static T As<T>() where T : class
+        public static T CurrentAs<T>() where T : class
         {
             return Current as T;
         }
@@ -57,12 +57,25 @@ namespace Ivento.Dci
 
         public static void Execute(Action action, object context)
         {
+            // Need to specify context explicitly since the Action method is wrapped in a Func delegate.
+            ExecuteAndReturn(() => { action(); return true; }, context ?? action.Target);
+        }
+
+        public static T ExecuteAndReturn<T>(Func<T> func)
+        {
+            return ExecuteAndReturn(func, null);
+        }
+
+        public static T ExecuteAndReturn<T>(Func<T> action, object context)
+        {
             if (_contextStack == null)
                 throw new ArgumentException("Context has not been initialized.");
 
             _contextStack.Push(context ?? action.Target);
-            action();
+            var output = action();
             _contextStack.Pop();
+
+            return output;
         }
     }
 }
