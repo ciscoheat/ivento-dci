@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
 using Should.Fluent;
@@ -211,6 +212,22 @@ namespace Ivento.Dci.Tests
                 output.Should().Equal(TestPropertyMessage);
             }
 
+            [Test]
+            public void ShouldSupportNestedContexts()
+            {
+                // Arrange
+                var list = new List<string>();
+                var context = new ContextThatTracksStackDepth(list, 3);
+
+                // Act
+                Context.Execute(context);
+
+                // Assert
+                list.Count.Should().Equal(3);
+            }
+
+            #region Mock Contexts
+
             /// <summary>
             /// Methods in here should not be made static because this instantiated class is used as context.
             /// </summary>
@@ -259,6 +276,28 @@ namespace Ivento.Dci.Tests
                     return TestPropertyMessage;
                 }
             }
+
+            public class ContextThatTracksStackDepth
+            {
+                private readonly List<string> _stackList;
+                private readonly int _maxDepth;
+
+                public ContextThatTracksStackDepth(List<string> stackList, int maxDepth)
+                {
+                    _stackList = stackList;
+                    _maxDepth = maxDepth;
+                }
+
+                public void Execute()
+                {
+                    _stackList.Add("Executing Context at depth: " + _stackList.Count);
+
+                    if(_stackList.Count < _maxDepth)
+                        Context.Execute(new ContextThatTracksStackDepth(_stackList, _maxDepth));
+                }
+            }
+
+            #endregion
         }
     }
 }
