@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ImpromptuInterface;
 using Ivento.Dci.Examples.MoneyTransfer.Data;
 
@@ -35,6 +36,14 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             Console.WriteLine("AFTER");
             Console.WriteLine("Source account: " + source.Balance);
             Console.WriteLine("Dest account: " + destination.Balance);
+
+            Console.WriteLine();
+            Console.WriteLine("SOURCE LEDGERS");
+            source.Ledgers.ToList().ForEach(Console.WriteLine);
+
+            Console.WriteLine();
+            Console.WriteLine("DESTINATION LEDGERS");
+            destination.Ledgers.ToList().ForEach(Console.WriteLine);
 
             Console.ReadKey(true);
         }

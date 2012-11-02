@@ -10,5 +10,10 @@
             Message = message;
             Amount = amount;
         }
+
+        public override string ToString()
+        {
+            return Message + ": " + Amount;
+        }
     }
 }
