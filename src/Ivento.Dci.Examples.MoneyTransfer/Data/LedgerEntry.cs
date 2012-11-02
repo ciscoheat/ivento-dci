@@ -13,7 +13,7 @@
 
         public override string ToString()
         {
-            return Message + ": " + Amount;
+            return string.Format("{0,-25}{1:c}", Message, Amount);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 
         public void Withdraw(decimal amount)
         {
-            Ledgers.AddEntry("Withdrawing", amount);
+            Ledgers.AddEntry("Withdrawing", -amount);
         }
     }
 

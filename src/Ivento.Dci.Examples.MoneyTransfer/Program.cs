@@ -27,15 +27,15 @@ namespace Ivento.Dci.Examples.MoneyTransfer
                 245m);
 
             Console.WriteLine("BEFORE");
-            Console.WriteLine("Source account: " + source.Balance);
-            Console.WriteLine("Dest account: " + destination.Balance);
+            Console.WriteLine("Source account  " + source.Balance.ToString("c"));
+            Console.WriteLine("Dest account    " + destination.Balance.ToString("c"));
 
             Context.Execute(context.Execute);
 
             Console.WriteLine();
             Console.WriteLine("AFTER");
-            Console.WriteLine("Source account: " + source.Balance);
-            Console.WriteLine("Dest account: " + destination.Balance);
+            Console.WriteLine("Source account  " + source.Balance.ToString("c"));
+            Console.WriteLine("Dest account    " + destination.Balance.ToString("c"));
 
             Console.WriteLine();
             Console.WriteLine("SOURCE LEDGERS");
