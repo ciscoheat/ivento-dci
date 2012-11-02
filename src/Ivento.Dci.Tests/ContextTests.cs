@@ -172,6 +172,45 @@ namespace Ivento.Dci.Tests
                 output.Should().Equal(TestPropertyMessage);
             }
 
+            [Test]
+            [ExpectedException(typeof(InvalidOperationException))]
+            public void ShouldThrowExceptionIfAnObjectIsSuppliedThatHasNoExecuteMethod()
+            {
+                // Arrange
+                var context = new SimpleContext();
+
+                // Act
+                Context.Execute(context);
+
+                // Assert
+            }
+
+            [Test]
+            public void ShouldCallTheExecuteMethodIfAnObjectIsSupplied()
+            {
+                // Arrange
+                var context = new ContextWithExecuteMethod();
+
+                // Act
+                Context.Execute(context);
+
+                // Assert
+                context.ExecuteCalled.Should().Be.True();
+            }
+
+            [Test]
+            public void ShouldCallTheExecuteMethodAndReturnAValueIfAnObjectIsSuppliedWhereTheExecuteMethodReturnsAValue()
+            {
+                // Arrange
+                var context = new ContextWithExecuteMethodThatReturnsAValue();
+
+                // Act
+                var output = Context.ExecuteAndReturn<string>(context);
+
+                // Assert
+                output.Should().Equal(TestPropertyMessage);
+            }
+
             /// <summary>
             /// Methods in here should not be made static because this instantiated class is used as context.
             /// </summary>
@@ -198,6 +237,24 @@ namespace Ivento.Dci.Tests
                 }
 
                 internal string ReturnAValue()
+                {
+                    return TestPropertyMessage;
+                }
+            }
+
+            public class ContextWithExecuteMethod
+            {
+                public bool ExecuteCalled { get; set; }
+
+                public void Execute()
+                {
+                    ExecuteCalled = true;
+                }
+            }
+
+            public class ContextWithExecuteMethodThatReturnsAValue
+            {
+                public string Execute()
                 {
                     return TestPropertyMessage;
                 }

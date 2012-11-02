@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Reflection;
 using System.Threading;
 
 namespace Ivento.Dci
@@ -73,6 +74,29 @@ namespace Ivento.Dci
             _contextStack.Pop();
 
             return output;
+        }
+
+        public static T ExecuteAndReturn<T>(object context)
+        {
+            var method = ContextExecuteMethod(context);
+            return (T)ExecuteAndReturn(() => method.Invoke(context, null), context);
+        }
+
+        public static void Execute(object context)
+        {
+            var method = ContextExecuteMethod(context);
+            Execute(() => method.Invoke(context, null), context);
+        }
+
+        private static MethodInfo ContextExecuteMethod(object context)
+        {
+            var type = context.GetType();
+            var executeMethod = type.GetMethod("Execute", BindingFlags.Public | BindingFlags.Instance);
+
+            if (executeMethod == null)
+                throw new InvalidOperationException("No Execute method on Context object.");
+
+            return executeMethod;
         }
     }
 }
