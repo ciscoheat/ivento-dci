@@ -18,25 +18,4 @@
             Source.Transfer();
         }
     }
-
-    public interface SourceAccount
-    {
-        void Withdraw(decimal amount);
-    }
-
-    public interface DestinationAccount
-    {
-        void Deposit(decimal amount);
-    }
-
-    public static class SourceAccountTraits
-    {
-        public static void Transfer(this SourceAccount source)
-        {
-            var context = Context.CurrentAs<MoneyTransfer>();
-
-            context.Destination.Deposit(context.Amount);
-            source.Withdraw(context.Amount);
-        }
-    }
 }
