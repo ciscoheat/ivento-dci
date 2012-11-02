@@ -58,7 +58,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             creditors.ForEach(c =>
                                   {
                                       var transferContext = new MoneyTransfer(source, c.Account, c.AmountOwed);
-                                      Context.Execute(transferContext.Execute);
+                                      Context.Execute(transferContext);
                                   });
         }
     }

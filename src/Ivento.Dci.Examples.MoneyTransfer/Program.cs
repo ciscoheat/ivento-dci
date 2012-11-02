@@ -69,7 +69,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             }
 
             Console.WriteLine();
-            Console.WriteLine("Press a key to exit.");
+            Console.WriteLine("Press the any key to exit.");
             Console.ReadKey(true);
         }
 
@@ -101,7 +101,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             Console.WriteLine("PAYING BILLS");
             creditors.ForEach(Console.WriteLine);
 
-            Context.Execute(context.Execute);
+            Context.Execute(context);
 
             Console.WriteLine();
             Console.WriteLine("AFTER");
@@ -125,7 +125,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             Console.WriteLine("Transfering from Source to Destination: " + context.Amount.ToString("c"));
 
             // Execute the context method.
-            Context.Execute(context.Execute);
+            Context.Execute(context);
 
             Console.WriteLine();
             Console.WriteLine("AFTER");
