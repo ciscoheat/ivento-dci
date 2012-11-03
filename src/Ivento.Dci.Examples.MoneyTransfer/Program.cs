@@ -22,8 +22,8 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             // Create some accounts
             var source = new Account(new List<LedgerEntry>
                                          {
-                                             new LedgerEntry("Start", 0m),
-                                             new LedgerEntry("First deposit", 1000m)
+                                             new LedgerEntry { Message = "Start", Amount = 0m },
+                                             new LedgerEntry { Message = "First deposit", Amount = 1000m }
                                          }
                                      );
 
@@ -80,14 +80,14 @@ namespace Ivento.Dci.Examples.MoneyTransfer
                                     new Creditor
                                         {
                                             Name = "Baker",
-                                            Account = new Account(new Collection<LedgerEntry>()).ActLike<DestinationAccount>(),
+                                            Account = new Account(new Collection<LedgerEntry>()),
                                             AmountOwed = 150m
                                         },
 
                                     new Creditor
                                         {
                                             Name = "Butcher",
-                                            Account = new Account(new Collection<LedgerEntry>()).ActLike<DestinationAccount>(),
+                                            Account = new Account(new Collection<LedgerEntry>()),
                                             AmountOwed = 200m
                                         }
                                 };

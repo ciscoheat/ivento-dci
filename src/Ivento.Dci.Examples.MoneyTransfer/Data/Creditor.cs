@@ -4,7 +4,7 @@
     {
         public string Name { get; set; }
         public decimal AmountOwed { get; set; }
-        public DestinationAccount Account { get; set; }
+        public Account Account { get; set; }
 
         public override string ToString()
         {

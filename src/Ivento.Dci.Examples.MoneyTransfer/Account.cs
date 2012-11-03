@@ -30,6 +30,8 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         }
     }
 
+    #region Roles for Account
+
     public interface SourceAccount
     {
         void Withdraw(decimal amount);
@@ -40,7 +42,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         void Deposit(decimal amount);
     }
 
-    public static class SourceAccountTraits
+    internal static class SourceAccountTraits
     {
         public static void Transfer(this SourceAccount source)
         {
@@ -57,25 +59,11 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 
             creditors.ForEach(c =>
                                   {
-                                      var transferContext = new MoneyTransfer(source, c.Account, c.AmountOwed);
+                                      var transferContext = new MoneyTransfer(source, c.Account.ActLike<DestinationAccount>(), c.AmountOwed);
                                       Context.Execute(transferContext);
                                   });
         }
     }
 
-    public interface Ledgers : ICollection<LedgerEntry>
-    {}
-
-    public static class LedgersTraits
-    {
-        public static void AddEntry(this Ledgers ledgers, string message, decimal amount)
-        {
-            ledgers.Add(new LedgerEntry(message, amount));
-        }
-
-        public static decimal Balance(this Ledgers ledgers)
-        {
-            return ledgers.Sum(e => e.Amount);
-        }
-    }
+    #endregion
 }

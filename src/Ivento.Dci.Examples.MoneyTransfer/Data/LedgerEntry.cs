@@ -2,14 +2,8 @@
 {
     public class LedgerEntry
     {
-        public string Message { get; private set; }
-        public decimal Amount { get; private set; }
-
-        public LedgerEntry(string message, decimal amount)
-        {
-            Message = message;
-            Amount = amount;
-        }
+        public string Message { get; set; }
+        public decimal Amount { get; set; }
 
         public override string ToString()
         {
