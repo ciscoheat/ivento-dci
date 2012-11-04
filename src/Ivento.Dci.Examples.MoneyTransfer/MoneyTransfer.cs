@@ -1,12 +1,14 @@
-﻿namespace Ivento.Dci.Examples.MoneyTransfer
+﻿using ImpromptuInterface;
+
+namespace Ivento.Dci.Examples.MoneyTransfer
 {
-    class MoneyTransfer
+    public class MoneyTransfer
     {
-        public SourceAccount Source { get; private set; }
-        public DestinationAccount Destination { get; private set; }
+        public Account Source { get; private set; }
+        public Account Destination { get; private set; }
         public decimal Amount { get; private set; }
 
-        public MoneyTransfer(SourceAccount source, DestinationAccount destination, decimal amount)
+        public MoneyTransfer(Account source, Account destination, decimal amount)
         {
             Source = source;
             Destination = destination;
@@ -15,7 +17,28 @@
 
         public void Execute()
         {
-            Source.Transfer();
+            Source.ActLike<SourceAccount>().Transfer();
+        }
+
+        public interface SourceAccount
+        {
+            void Withdraw(decimal amount);
+        }
+
+        public interface DestinationAccount
+        {
+            void Deposit(decimal amount);
+        }
+    }
+
+    static class MoneyTransferMethodfulRoles
+    {
+        public static void Transfer(this MoneyTransfer.SourceAccount source)
+        {
+            var context = Context.CurrentAs<MoneyTransfer>();
+
+            context.Destination.Deposit(context.Amount);
+            source.Withdraw(context.Amount);
         }
     }
 }

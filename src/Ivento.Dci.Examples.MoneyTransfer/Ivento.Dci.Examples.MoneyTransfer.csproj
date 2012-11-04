@@ -49,7 +49,6 @@
     <Compile Include="Account.cs" />
     <Compile Include="Data\Creditor.cs" />
     <Compile Include="Data\LedgerEntry.cs" />
-    <Compile Include="Ledgers.cs" />
     <Compile Include="MoneyTransfer.cs" />
     <Compile Include="PayBills.cs" />
     <Compile Include="Program.cs" />

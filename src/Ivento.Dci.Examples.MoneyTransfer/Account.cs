@@ -7,11 +7,11 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 {
     public class Account
     {
-        public Ledgers Ledgers { get; set; }
+        public AccountLedgers Ledgers { get; set; }
 
         public Account(ICollection<LedgerEntry> ledgers)
         {
-            Ledgers = ledgers.ActLike<Ledgers>();
+            Ledgers = ledgers.ActLike<AccountLedgers>();
         }
 
         public decimal Balance
@@ -28,42 +28,21 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         {
             Ledgers.AddEntry("Withdrawing", -amount);
         }
+
+        public interface AccountLedgers : ICollection<LedgerEntry>
+        {}
     }
 
-    #region Roles for Account
-
-    public interface SourceAccount
+    internal static class AccountLedgersTraits
     {
-        void Withdraw(decimal amount);
-    }
-
-    public interface DestinationAccount
-    {
-        void Deposit(decimal amount);
-    }
-
-    internal static class SourceAccountTraits
-    {
-        public static void Transfer(this SourceAccount source)
+        public static void AddEntry(this Account.AccountLedgers ledgers, string message, decimal amount)
         {
-            var context = Context.CurrentAs<MoneyTransfer>();
-
-            context.Destination.Deposit(context.Amount);
-            source.Withdraw(context.Amount);
+            ledgers.Add(new LedgerEntry { Message = message, Amount = amount });
         }
 
-        public static void PayBills(this SourceAccount source)
+        public static decimal Balance(this Account.AccountLedgers ledgers)
         {
-            var context = Context.CurrentAs<PayBills>();
-            var creditors = context.Creditors.ToList();
-
-            creditors.ForEach(c =>
-                                  {
-                                      var transferContext = new MoneyTransfer(source, c.Account.ActLike<DestinationAccount>(), c.AmountOwed);
-                                      Context.Execute(transferContext);
-                                  });
+            return ledgers.Sum(e => e.Amount);
         }
     }
-
-    #endregion
 }

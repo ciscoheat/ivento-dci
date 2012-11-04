@@ -94,7 +94,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
                                         }
                                 };
 
-            var context = new PayBills(source.ActLike<SourceAccount>(), creditors);
+            var context = new PayBills(source, creditors);
 
             Console.WriteLine("BEFORE");
             Console.WriteLine("Source account           " + source.Balance.ToString("c"));
@@ -114,10 +114,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         {
             // Create the context. Note that the Account objects are duck typed to act 
             // like the RolePlayers they should be in the Context.
-            var context = new MoneyTransfer(
-                source.ActLike<SourceAccount>(),
-                destination.ActLike<DestinationAccount>(),
-                245m);
+            var context = new MoneyTransfer(source, destination, 245m);
 
             Console.WriteLine("BEFORE");
             Console.WriteLine("Source account           " + source.Balance.ToString("c"));
