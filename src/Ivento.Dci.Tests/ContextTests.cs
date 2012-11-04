@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using ImpromptuInterface;
 using NUnit.Framework;
 using Should.Fluent;
 
@@ -18,6 +19,85 @@ namespace Ivento.Dci.Tests
             Context.Initialize.Clear();
         }
 
+        public class TheCurrentAsMethod : ContextTests
+        {
+            public TheCurrentAsMethod ContextAssertionTest;
+
+            [Test]
+            public void ShouldReturnTheCurrentContextWhenCalledWithNoArguments()
+            {
+                // Arrange
+                const string s = "VeryMockedContext";
+                var stack = new Stack();
+                
+                stack.Push(s);
+
+                Context.Initialize.With(() => stack);
+
+                // Act
+                var current = Context.Current<string>();
+
+                // Assert
+                current.Should().Equal(s);
+            }
+
+            [Test]
+            public void ShouldReturnTheCurrentContextIfRoleIsSameAsContextRole()
+            {
+                // Arrange
+                var stack = new Stack();
+
+                stack.Push(this);
+                ContextAssertionTest = this;
+
+                Context.Initialize.With(() => stack);
+
+                // Act
+                var current = Context.Current<TheCurrentAsMethod>(this, c => c.ContextAssertionTest);
+
+                // Assert
+                current.Should().Equal(this);
+            }
+
+            [Test]
+            [ExpectedException(typeof(InvalidOperationException))]
+            public void ShouldThrowExceptionIfRoleIsntSameAsContextRole()
+            {
+                // Arrange
+                const string s = "AnotherRole";
+                var stack = new Stack();
+
+                stack.Push(this);
+                ContextAssertionTest = this;
+
+                Context.Initialize.With(() => stack);
+
+                // Act
+                var current = Context.Current<TheCurrentAsMethod>(s, c => c.ContextAssertionTest);
+
+                // Assert
+                current.Should().Equal(this);
+            }
+
+
+            [Test]
+            [ExpectedException(typeof(InvalidOperationException))]
+            public void ShouldThrowExceptionIfContextTypeIsntSameAsTheGenericParameter()
+            {
+                // Arrange
+                const string s = "VeryMockedContext";
+                var stack = new Stack();
+                stack.Push(s);
+
+                Context.Initialize.With(() => stack);
+
+                // Act
+
+                // Assert
+                Context.Current<ContextTests>().Should().Not.Be.Null();
+            }
+        }
+
         public class TheStaticInitializeMethod : ContextTests
         {
             [Test]
@@ -31,7 +111,7 @@ namespace Ivento.Dci.Tests
 
                 // Assert
                 // Accessing an uninitialized context should throw an exception.
-                Context.Current.Should().Not.Be.Null();
+                Context.Current<string>().Should().Not.Be.Null();
             }
 
             [Test]
@@ -70,7 +150,7 @@ namespace Ivento.Dci.Tests
                 Context.Initialize.InThreadScope();
 
                 // Assert
-                Context.Current.Should().Not.Be.Null();
+                Context.Current<string>().Should().Not.Be.Null();
             }
 
             [Test]
@@ -84,7 +164,7 @@ namespace Ivento.Dci.Tests
                 Context.Initialize.With(() => stack);
 
                 // Assert
-                Context.Current.Should().Equal("Mock");
+                Context.Current<string>().Should().Equal("Mock");
             }
         }
 
@@ -271,27 +351,13 @@ namespace Ivento.Dci.Tests
 
                 internal void AssignTestPropertyToContext()
                 {
-                    var context = Context.CurrentAs<SimpleContext>();
+                    var context = Context.Current<SimpleContext>();
                     context.TestProperty = TestPropertyMessage;
                 }
 
                 internal void Wait()
                 {
                     Thread.Sleep(20);
-                }
-
-                internal void TestIfContextDiffersFrom(SimpleContext otherContext)
-                {
-                    var context = Context.CurrentAs<SimpleContext>();
-
-                    context.Should().Not.Equal(otherContext);
-                }
-
-                internal void TestIfContextIsSameAs(SimpleContext otherContext)
-                {
-                    var context = Context.CurrentAs<SimpleContext>();
-
-                    context.Should().Equal(otherContext);
                 }
 
                 internal string ReturnAValue()

@@ -31,7 +31,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
     {
         public static void PayBills(this PayBills.SourceAccount source)
         {
-            var context = Context.CurrentAs<PayBills>();
+            var context = Context.Current<PayBills>(source, c => c.Source);
             var creditors = context.Creditors.ToList();
 
             creditors.ForEach(creditor =>

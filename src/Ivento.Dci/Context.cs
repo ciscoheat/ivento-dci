@@ -5,29 +5,56 @@ using System.Threading;
 
 namespace Ivento.Dci
 {
-    public class Context
+    public sealed class Context
     {
         private static Func<Stack> _stackAccessor;
 
         private static readonly Lazy<ContextInitialization> InitializeLazy = new Lazy<ContextInitialization>(() => new ContextInitialization());
         public static ContextInitialization Initialize { get { return InitializeLazy.Value; } }
 
-        public static T CurrentAs<T>() where T : class
+        /// <summary>
+        /// Return the current Context, ensuring that an object is the same as a Context property.
+        /// </summary>
+        /// <typeparam name="T">Context type</typeparam>
+        /// <returns>Context in initialized scope</returns>
+        public static T Current<T>() where T : class
         {
-            return Current as T;
+            var currentContext = _stackAccessor().Peek();
+
+            if (currentContext.GetType() != typeof(T))
+            {
+                throw new InvalidOperationException(
+                    string.Format("Context type mismatch: Expected {0}, was {1}", typeof (T), currentContext.GetType()));
+            }
+
+            return currentContext as T;
         }
 
-        public static object Current
+        /// <summary>
+        /// Return the current Context, ensuring that an object is the same as a Context property.
+        /// </summary>
+        /// <typeparam name="T">Context type</typeparam>
+        /// <param name="role">Object playing a role in an extension method</param>
+        /// <param name="contextRole">Context property that should be the same as the object</param>
+        /// <returns>Context in initialized scope</returns>
+        /// <exception cref="InvalidOperationException">If the object isn't equal to the specified Context property.</exception>
+        /// <remarks>
+        /// Sometimes the underlying RolePlayer must be accessed instead of the Role (interface) in the extension method,
+        /// for example when creating nested contexts. This overload ensures that those objects are one and the same.
+        /// </remarks>
+        public static T Current<T>(object role, Func<T, object> contextRole) where T : class
         {
-            get
-            {
-                return _stackAccessor().Peek();
-            }
+            var currentContext = Current<T>();
+
+            if(!role.Equals(contextRole(currentContext)))
+                throw new InvalidOperationException("Role is not bound to Context properly.");
+
+            return currentContext;
         }
 
         #region Initialization
 
-        public class ContextInitialization
+        public sealed class ContextInitialization
         {
             private static readonly Lazy<Stack> StaticStack = new Lazy<Stack>(() => new Stack());
 

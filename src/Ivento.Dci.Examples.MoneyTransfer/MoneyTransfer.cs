@@ -35,7 +35,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
     {
         public static void Transfer(this MoneyTransfer.SourceAccount source)
         {
-            var context = Context.CurrentAs<MoneyTransfer>();
+            var context = Context.Current<MoneyTransfer>(source, c => c.Source);
 
             context.Destination.Deposit(context.Amount);
             source.Withdraw(context.Amount);
