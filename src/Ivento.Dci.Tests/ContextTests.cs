@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using ImpromptuInterface;
 using NUnit.Framework;
 using Should.Fluent;
 

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using ImpromptuInterface;
 using Ivento.Dci.Examples.MoneyTransfer.Data;
 
 namespace Ivento.Dci.Examples.MoneyTransfer

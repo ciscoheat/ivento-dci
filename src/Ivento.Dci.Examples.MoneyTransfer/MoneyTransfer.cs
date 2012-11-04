@@ -1,6 +1,4 @@
-﻿using ImpromptuInterface;
-
-namespace Ivento.Dci.Examples.MoneyTransfer
+﻿namespace Ivento.Dci.Examples.MoneyTransfer
 {
     public class MoneyTransfer
     {
