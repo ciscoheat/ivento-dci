@@ -17,7 +17,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             // 
             // In a web application, the scope will be per Request and another Initalization
             // method should be called.
-            Context.InitializeWithThreadScope();
+            Context.Initialize.InThreadScope();
 
             // Create some accounts
             var source = new Account(new List<LedgerEntry>

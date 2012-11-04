@@ -8,7 +8,9 @@ namespace Ivento.Dci
     public class Context
     {
         private static Stack _contextStack;
-        private static ThreadLocal<Stack> _threadContextAccessor;
+
+        private static readonly Lazy<ContextInitialization> InitializeLazy = new Lazy<ContextInitialization>(() => new ContextInitialization());
+        public static ContextInitialization Initialize { get { return InitializeLazy.Value; } }
 
         public static T CurrentAs<T>() where T : class
         {
@@ -26,27 +28,41 @@ namespace Ivento.Dci
             }
         }
 
-        public static void Clear()
+        #region Initializion
+
+        public class ContextInitialization
         {
-            _contextStack = null;
+            private static ThreadLocal<Stack> _threadContextAccessor;
+
+            internal ContextInitialization()
+            {}
+
+            public void InThreadScope()
+            {
+                if (_contextStack != null)
+                    throw new ArgumentException("Context has already been initialized.");
+
+                _threadContextAccessor = new ThreadLocal<Stack>(() => new Stack());
+                With(_threadContextAccessor.Value);
+            }
+
+            public void With(Stack stack)
+            {
+                if (_contextStack != null)
+                    throw new ArgumentException("Context has already been initialized.");
+
+                _contextStack = stack;
+            }
+
+            public static void Clear()
+            {
+                _contextStack = null;
+            }
         }
 
-        public static void InitializeWithThreadScope()
-        {
-            if (_contextStack != null)
-                throw new ArgumentException("Context has already been initialized.");
+        #endregion
 
-            _threadContextAccessor = new ThreadLocal<Stack>(() => new Stack());
-            Initialize(_threadContextAccessor.Value);
-        }
-
-        public static void Initialize(Stack stack)
-        {
-            if (_contextStack != null)
-                throw new ArgumentException("Context has already been initialized.");
-
-            _contextStack = stack;
-        }
+        #region Execution
 
         public static void Execute(Action action)
         {
@@ -98,5 +114,7 @@ namespace Ivento.Dci
 
             return executeMethod;
         }
+
+        #endregion
     }
 }

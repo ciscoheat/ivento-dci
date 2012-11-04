@@ -15,7 +15,7 @@ namespace Ivento.Dci.Tests
         [SetUp]
         public void BaseSetUp()
         {
-            Context.Clear();
+            Context.ContextInitialization.Clear();
         }
 
         public class TheStaticInitializeMethod : ContextTests
@@ -27,7 +27,7 @@ namespace Ivento.Dci.Tests
                 // Arrange
 
                 // Act
-                Context.Clear();
+                Context.ContextInitialization.Clear();
 
                 // Assert
                 // Accessing an uninitialized context should throw an exception.
@@ -39,10 +39,10 @@ namespace Ivento.Dci.Tests
             public void ShouldThrowExceptionIfThreadScopeInitializedTwice()
             {
                 // Arrange
-                Context.InitializeWithThreadScope();
+                Context.Initialize.InThreadScope();
 
                 // Act
-                Context.InitializeWithThreadScope();
+                Context.Initialize.InThreadScope();
 
                 // Assert
             }
@@ -52,10 +52,10 @@ namespace Ivento.Dci.Tests
             public void ShouldThrowExceptionIfCustomStackInitializedTwice()
             {
                 // Arrange
-                Context.Initialize(new Stack());
+                Context.Initialize.With(new Stack());
 
                 // Act
-                Context.Initialize(new Stack());
+                Context.Initialize.With(new Stack());
 
                 // Assert
             }
@@ -67,7 +67,7 @@ namespace Ivento.Dci.Tests
                 // Arrange
 
                 // Act
-                Context.InitializeWithThreadScope();
+                Context.Initialize.InThreadScope();
 
                 // Assert
                 Context.Current.Should().Not.Be.Null();
@@ -81,7 +81,7 @@ namespace Ivento.Dci.Tests
                 stack.Push("Mock");
 
                 // Act
-                Context.Initialize(stack);
+                Context.Initialize.With(stack);
 
                 // Assert
                 Context.Current.Should().Equal("Mock");
@@ -95,7 +95,7 @@ namespace Ivento.Dci.Tests
             [SetUp]
             public void SetUp()
             {
-                Context.InitializeWithThreadScope();
+                Context.Initialize.InThreadScope();
             }
 
             [Test]
@@ -103,7 +103,7 @@ namespace Ivento.Dci.Tests
             public void ShouldThrowExceptionIfNotInitialized()
             {
                 // Arrange
-                Context.Clear();
+                Context.ContextInitialization.Clear();
 
                 // Act
                 Context.Execute(() => {});
