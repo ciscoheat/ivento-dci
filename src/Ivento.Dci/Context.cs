@@ -7,7 +7,7 @@ namespace Ivento.Dci
 {
     public class Context
     {
-        private static Stack _contextStack;
+        private static Func<Stack> _stackAccessor;
 
         private static readonly Lazy<ContextInitialization> InitializeLazy = new Lazy<ContextInitialization>(() => new ContextInitialization());
         public static ContextInitialization Initialize { get { return InitializeLazy.Value; } }
@@ -21,10 +21,7 @@ namespace Ivento.Dci
         {
             get
             {
-                if (_contextStack == null)
-                    throw new ArgumentException("Context has not been initialized.");
-
-                return _contextStack.Peek();
+                return _stackAccessor().Peek();
             }
         }
 
@@ -32,31 +29,48 @@ namespace Ivento.Dci
 
         public class ContextInitialization
         {
-            private static ThreadLocal<Stack> _threadContextAccessor;
+            private static readonly Lazy<Stack> StaticStack = new Lazy<Stack>(() => new Stack());
+
+            private static readonly Lazy<ThreadLocal<Stack>> ThreadStaticStack = new Lazy<ThreadLocal<Stack>>(
+                () => new ThreadLocal<Stack>(
+                    () => new Stack()
+                )
+            );
 
             internal ContextInitialization()
             {}
 
+            /// <summary>
+            /// Initialize Context as static for the whole application.
+            /// </summary>
+            public void InStaticScope()
+            {
+                With(() => StaticStack.Value);
+            }
+
+            /// <summary>
+            /// Initialize Context as thread static (one Context per Thread)
+            /// </summary>
             public void InThreadScope()
             {
-                if (_contextStack != null)
-                    throw new ArgumentException("Context has already been initialized.");
-
-                _threadContextAccessor = new ThreadLocal<Stack>(() => new Stack());
-                With(_threadContextAccessor.Value);
+                With(() => ThreadStaticStack.Value.Value);
             }
 
-            public void With(Stack stack)
+            /// <summary>
+            /// Custom Initialization should call this method to finalize initialization.
+            /// </summary>
+            /// <param name="stackAccessor">A method returning a Stack that will be used as Context.</param>
+            public void With(Func<Stack> stackAccessor)
             {
-                if (_contextStack != null)
+                if (_stackAccessor != null)
                     throw new ArgumentException("Context has already been initialized.");
 
-                _contextStack = stack;
+                _stackAccessor = stackAccessor;
             }
 
-            public static void Clear()
+            public void Clear()
             {
-                _contextStack = null;
+                _stackAccessor = null;
             }
         }
 
@@ -82,12 +96,12 @@ namespace Ivento.Dci
 
         public static T ExecuteAndReturn<T>(Func<T> action, object context)
         {
-            if (_contextStack == null)
-                throw new ArgumentException("Context has not been initialized.");
+            if(_stackAccessor == null)
+                throw new NullReferenceException("Context is not initialized.");
 
-            _contextStack.Push(context ?? action.Target);
+            _stackAccessor().Push(context ?? action.Target);
             var output = action();
-            _contextStack.Pop();
+            _stackAccessor().Pop();
 
             return output;
         }

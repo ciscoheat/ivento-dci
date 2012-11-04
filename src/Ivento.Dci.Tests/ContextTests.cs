@@ -15,19 +15,19 @@ namespace Ivento.Dci.Tests
         [SetUp]
         public void BaseSetUp()
         {
-            Context.ContextInitialization.Clear();
+            Context.Initialize.Clear();
         }
 
         public class TheStaticInitializeMethod : ContextTests
         {
             [Test]
-            [ExpectedException(typeof(ArgumentException))]
-            public void ShouldClearTheCurrentContextWhenCalledWithClearContextEnum()
+            [ExpectedException(typeof(NullReferenceException))]
+            public void ShouldClearTheCurrentContextWhenCalledWithClear()
             {
                 // Arrange
 
                 // Act
-                Context.ContextInitialization.Clear();
+                Context.Initialize.Clear();
 
                 // Assert
                 // Accessing an uninitialized context should throw an exception.
@@ -52,10 +52,10 @@ namespace Ivento.Dci.Tests
             public void ShouldThrowExceptionIfCustomStackInitializedTwice()
             {
                 // Arrange
-                Context.Initialize.With(new Stack());
+                Context.Initialize.With(() => new Stack());
 
                 // Act
-                Context.Initialize.With(new Stack());
+                Context.Initialize.With(() => new Stack());
 
                 // Assert
             }
@@ -81,7 +81,7 @@ namespace Ivento.Dci.Tests
                 stack.Push("Mock");
 
                 // Act
-                Context.Initialize.With(stack);
+                Context.Initialize.With(() => stack);
 
                 // Assert
                 Context.Current.Should().Equal("Mock");
@@ -99,11 +99,11 @@ namespace Ivento.Dci.Tests
             }
 
             [Test]
-            [ExpectedException(typeof(ArgumentException))]
+            [ExpectedException(typeof(NullReferenceException))]
             public void ShouldThrowExceptionIfNotInitialized()
             {
                 // Arrange
-                Context.ContextInitialization.Clear();
+                Context.Initialize.Clear();
 
                 // Act
                 Context.Execute(() => {});
@@ -139,25 +139,59 @@ namespace Ivento.Dci.Tests
             }
 
             [Test]
-            public void ShouldBeExecutedAsThreadStatic()
+            public void ShouldBeExecutedAsThreadStaticIfInThreadScope()
             {
-                var context1 = new SimpleContext();
-                var context2 = new SimpleContext();
+                var context = new SimpleContext();
 
-                // Arrange                
-                var newThread = new Thread(() => Context.Execute(context2.Wait));
+                // Arrange
+                Context.Initialize.Clear();
 
-                // Act
+                // Need to emulate the InThreadScope method here for easier testing.
+                var stack = new ThreadLocal<Stack>(() => new Stack());
+                Context.Initialize.With(() => stack.Value);
+
+                var newThread = new Thread(() => Context.Execute(context.Wait));
+
+                // Act & Assert
+                stack.Value.Count.Should().Equal(0);
 
                 // Start the thread, wait for it to set the context.
                 newThread.Start();
                 Thread.Sleep(10);
 
-                // Test if current context is different from the one in the other thread.
-                Context.Execute(() => context1.TestIfContextDiffersFrom(context2), context1);
-                newThread.Join(30);
+                // Other thread is inside its context here, but this context stack should be empty.
+                stack.Value.Count.Should().Equal(0);
 
-                // Assert
+                newThread.Join(30);
+            }
+
+            private static Stack _staticStack;
+
+            [Test]
+            public void ShouldBeExecutedAsStaticIfInStaticScope()
+            {
+                var context = new SimpleContext();
+
+                // Arrange
+                Context.Initialize.Clear();
+
+                // Need to emulate the InStaticScope method here for easier testing.
+                _staticStack = new Stack();
+                Context.Initialize.With(() => _staticStack);
+
+                var newThread = new Thread(() => Context.Execute(context.Wait));
+
+                // Act & Assert
+                _staticStack.Count.Should().Equal(0);
+
+                // Start the thread, wait for it to set the context.
+                newThread.Start();
+                Thread.Sleep(10);
+
+                // Other thread is inside its context here, and since they share context it should be found.
+                _staticStack.Count.Should().Equal(1);
+
+                newThread.Join(30);
             }
 
             [Test]
@@ -251,6 +285,13 @@ namespace Ivento.Dci.Tests
                     var context = Context.CurrentAs<SimpleContext>();
 
                     context.Should().Not.Equal(otherContext);
+                }
+
+                internal void TestIfContextIsSameAs(SimpleContext otherContext)
+                {
+                    var context = Context.CurrentAs<SimpleContext>();
+
+                    context.Should().Equal(otherContext);
                 }
 
                 internal string ReturnAValue()
