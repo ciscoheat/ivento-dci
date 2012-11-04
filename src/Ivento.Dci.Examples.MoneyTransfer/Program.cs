@@ -12,12 +12,14 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         static void Main()
         {
             // The Context must be initialized before use, depending on the type of
-            // application. In a simple non-web application like this, the ThreadScope
-            // initalization can be used. It means that the context will be scoped per Thread.
+            // application. In a simple non-threaded application like this, the InStaticScope
+            // initalization can be used. It means that the context will be shared between threads.
+            //
+            // If the Context should be scoped per Thread, use InThreadScope.
             // 
             // In a web application, the scope will be per Request and another Initalization
             // method should be called.
-            Context.Initialize.InThreadScope();
+            Context.Initialize.InStaticScope();
 
             // Create some accounts
             var source = new Account(new List<LedgerEntry>

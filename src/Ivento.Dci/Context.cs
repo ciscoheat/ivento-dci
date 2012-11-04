@@ -25,7 +25,7 @@ namespace Ivento.Dci
             }
         }
 
-        #region Initializion
+        #region Initialization
 
         public class ContextInitialization
         {
