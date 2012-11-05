@@ -2,20 +2,34 @@
 {
     public class MoneyTransfer
     {
-        public Account Source { get; private set; }
-        public Account Destination { get; private set; }
+        public MoneyTransferRolePlayers RolePlayers { get; private set; }
+        public class MoneyTransferRolePlayers
+        {
+            public Account Source { get; set; }
+            public Account Destination { get; set; }
+            public decimal Amount { get; set; }
+        }
+
+        public SourceAccount Source { get; private set; }
+        public DestinationAccount Destination { get; private set; }
         public decimal Amount { get; private set; }
 
         public MoneyTransfer(Account source, Account destination, decimal amount)
         {
-            Source = source;
-            Destination = destination;
-            Amount = amount;
+            RolePlayers = new MoneyTransferRolePlayers { Source = source, Destination = destination, Amount = amount };
+            BindRoles();
+        }
+
+        private void BindRoles()
+        {
+            Source = RolePlayers.Source.ActLike<SourceAccount>();
+            Destination = RolePlayers.Destination.ActLike<DestinationAccount>();
+            Amount = RolePlayers.Amount;
         }
 
         public void Execute()
         {
-            Source.ActLike<SourceAccount>().Transfer();
+            Source.Transfer();
         }
 
         public interface SourceAccount
@@ -36,7 +50,7 @@
             var context = Context.Current<MoneyTransfer>(source, c => c.Source);
 
             context.Destination.Deposit(context.Amount);
-            source.Withdraw(context.Amount);
+            context.Source.Withdraw(context.Amount);
         }
     }
 }

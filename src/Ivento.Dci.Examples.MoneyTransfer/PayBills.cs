@@ -6,24 +6,40 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 {
     public class PayBills
     {
-        public Account Source { get; private set; }
-        public IEnumerable<Creditor> Creditors { get; private set; }
+        public PayBillsRolePlayers RolePlayers { get; private set; }
+        public class PayBillsRolePlayers
+        {
+            public Account Source { get; set; }
+            public IEnumerable<Creditor> Creditors { get; set; }
+        }
+
+        public SourceAccount Source { get; private set; }
+        public BillCreditors Creditors { get; private set; }
 
         public PayBills(Account source, IEnumerable<Creditor> creditors)
         {
-            Source = source;
-            Creditors = creditors;
+            RolePlayers = new PayBillsRolePlayers { Source = source, Creditors = creditors };
+            BindRoles();
+        }
+
+        private void BindRoles()
+        {
+            Source = RolePlayers.Source.ActLike<SourceAccount>();
+            Creditors = RolePlayers.Creditors.ActLike<BillCreditors>();
         }
 
         public void Execute()
         {
-            Source.ActLike<SourceAccount>().PayBills();
+            Source.PayBills();
         }
 
         public interface SourceAccount
         {
             void Withdraw(decimal amount);
         }
+
+        public interface BillCreditors : IEnumerable<Creditor>
+        {}
     }
 
     static class PayBillsMethodfulRoles
@@ -35,7 +51,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 
             creditors.ForEach(creditor =>
             {
-                var transferContext = new MoneyTransfer(context.Source, creditor.Account, creditor.AmountOwed);
+                var transferContext = new MoneyTransfer(context.RolePlayers.Source, creditor.Account, creditor.AmountOwed);
                 Context.Execute(transferContext);
             });
         }

@@ -6,28 +6,38 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 {
     public class Account
     {
-        public ICollection<LedgerEntry> Ledgers { get; private set; }
-        private readonly AccountLedgers _ledgers;
+        public AccountRolePlayers RolePlayers { get; private set; }
+        public class AccountRolePlayers
+        {
+            public ICollection<LedgerEntry> Ledgers { get; set; }
+        }
+
+        public AccountLedgers Ledgers { get; private set; }
 
         public Account(ICollection<LedgerEntry> ledgers)
         {
-            Ledgers = ledgers;
-            _ledgers = Ledgers.ActLike<AccountLedgers>();
+            RolePlayers = new AccountRolePlayers { Ledgers = ledgers };
+            BindRoles();
+        }
+
+        private void BindRoles()
+        {
+            Ledgers = RolePlayers.Ledgers.ActLike<AccountLedgers>();
         }
 
         public decimal Balance
         {
-            get { return _ledgers.Balance(); }
+            get { return Ledgers.Balance(); }
         }
 
         public void Deposit(decimal amount)
         {
-            _ledgers.AddEntry("Depositing", amount);
+            Ledgers.AddEntry("Depositing", amount);
         }
 
         public void Withdraw(decimal amount)
         {
-            _ledgers.AddEntry("Withdrawing", -amount);
+            Ledgers.AddEntry("Withdrawing", -amount);
         }
 
         public interface AccountLedgers : ICollection<LedgerEntry>
