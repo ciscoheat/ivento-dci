@@ -10,17 +10,27 @@ namespace Ivento.Dci.Examples.MoneyTransfer
     {
         static void Main()
         {
-            // The Context must be initialized before use, depending on the type of
-            // application. In a simple non-threaded application like this, the InStaticScope
-            // initalization can be used. It means that the context will be shared between threads.
             //
-            // If the Context should be scoped per Thread, use InThreadScope.
+            // Starting point of MoneyTransfer and PayBills example.
+            //
+            // This and all context files (MoneyTransfer, PayBills, Account) are commented,
+            // so follow the code for an in-code tutorial.
+            //
+
+            // The Context must be initialized before use, depending on the type of application. 
+            // In a simple application like this, the InStaticScope initalization 
+            // can be used. It means that the context will be shared between threads.
+            //
+            // Multithreading can create unpredictable effects when switching Context, so if the 
+            // Context should be scoped per Thread, use InThreadScope.
             // 
             // In a web application, the scope will be per Request and another Initalization
-            // method should be called.
+            // method should be called, using for example HttpContext.Items for scope.
             Context.Initialize.InStaticScope();
 
-            // Create some accounts
+            // Create some accounts that will be used for the examples.
+            // Note that the Account is not a Data entity but a Context. The account balance
+            // is calculated using the underlying real Data entity objects, LedgerEntry.
             var source = new Account(new List<LedgerEntry>
                                          {
                                              new LedgerEntry { Message = "Start", Amount = 0m },
@@ -30,52 +40,81 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 
             var destination = new Account(new List<LedgerEntry>());
 
-            // Menu
+            // Output a menu
+            Console.WriteLine("DCI Examples");
+            Console.WriteLine();
             Console.WriteLine("1 - Basic money transfer");
             Console.WriteLine("2 - Pay bills");
             Console.WriteLine();
 
-            // Detecting a key can be so ugly...
+            // Detect choice. Amazing how detecting a key can be so awkward.
             ConsoleKeyInfo key;
             do
             {
                 key = Console.ReadKey(true);
-            } while (key.Key != ConsoleKey.D1 && key.Key != ConsoleKey.D2);            
+            } while (key.Key != ConsoleKey.D1 && key.Key != ConsoleKey.D2);
 
-            switch (key.Key)
-            {
-                case ConsoleKey.D1:
-                    BasicMoneyTransfer(destination, source);
-                    break;
+            var menuAction = new Dictionary<ConsoleKey, Action>
+                                 {
+                                     {ConsoleKey.D1, () => BasicMoneyTransfer(source, destination)},
+                                     {ConsoleKey.D2, () => PayBills(source)}
+                                 };
 
-                case ConsoleKey.D2:
-                    PayBills(source);
-                    break;
-            }
+            // Run the chosen example. Go to the BasicMoneyTransfer method below for
+            // following the code comments.
+            menuAction[key.Key]();
 
-            // Final output
+            // Output the account ledgers after the examples are done.
 
-            if (source.Ledgers.Count > 0)
+            if (source.LedgersList.Any())
             {
                 Console.WriteLine();
                 Console.WriteLine("SOURCE LEDGERS");
-                source.Ledgers.ToList().ForEach(Console.WriteLine);
+                source.LedgersList.ToList().ForEach(Console.WriteLine);
             }
 
-            if (destination.Ledgers.Count > 0)
+            if (destination.LedgersList.Any())
             {
                 Console.WriteLine();
                 Console.WriteLine("DESTINATION LEDGERS");
-                destination.Ledgers.ToList().ForEach(Console.WriteLine);
+                destination.LedgersList.ToList().ForEach(Console.WriteLine);
             }
 
             Console.WriteLine();
             Console.WriteLine("Press the any key to exit.");
             Console.ReadKey(true);
+
+            // Example finished!
+        }
+
+        /// <summary>
+        /// First example. Please open the MoneyTransfer.cs file for an in-depth
+        /// explanation of a Context.
+        /// </summary>
+        private static void BasicMoneyTransfer(Account source, Account destination)
+        {
+            // Create the context using the supplied accounts. 245 will be the transfer amount.
+            var context = new MoneyTransfer(source, destination, 245m);
+
+            Console.WriteLine("BEFORE");
+            Console.WriteLine("Source account           " + source.Balance.ToString("c"));
+            Console.WriteLine("Destination account      " + destination.Balance.ToString("c"));
+
+            Console.WriteLine();
+            Console.WriteLine("Transfering from Source to Destination: " + context.Amount.ToString("c"));
+
+            // Execute the context.
+            context.Execute();
+
+            Console.WriteLine();
+            Console.WriteLine("AFTER");
+            Console.WriteLine("Source account           " + source.Balance.ToString("c"));
+            Console.WriteLine("Destination account      " + destination.Balance.ToString("c"));
         }
 
         private static void PayBills(Account source)
         {
+            // Create some creditors that wants money from the supplied account.
             var creditors = new List<Creditor>
                                 {
                                     new Creditor
@@ -93,6 +132,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
                                         }
                                 };
 
+            // Create the context using the supplied account and the creditors.
             var context = new PayBills(source, creditors);
 
             Console.WriteLine("BEFORE");
@@ -102,33 +142,12 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             Console.WriteLine("PAYING BILLS");
             creditors.ForEach(Console.WriteLine);
 
-            Context.Execute(context);
+            // Execute the context.
+            context.Execute();
 
             Console.WriteLine();
             Console.WriteLine("AFTER");
             Console.WriteLine("Source account           " + source.Balance.ToString("c"));
-        }
-
-        private static void BasicMoneyTransfer(Account destination, Account source)
-        {
-            // Create the context. Note that the Account objects are duck typed to act 
-            // like the RolePlayers they should be in the Context.
-            var context = new MoneyTransfer(source, destination, 245m);
-
-            Console.WriteLine("BEFORE");
-            Console.WriteLine("Source account           " + source.Balance.ToString("c"));
-            Console.WriteLine("Destination account      " + destination.Balance.ToString("c"));
-
-            Console.WriteLine();
-            Console.WriteLine("Transfering from Source to Destination: " + context.Amount.ToString("c"));
-
-            // Execute the context method.
-            Context.Execute(context);
-
-            Console.WriteLine();
-            Console.WriteLine("AFTER");
-            Console.WriteLine("Source account           " + source.Balance.ToString("c"));
-            Console.WriteLine("Destination account      " + destination.Balance.ToString("c"));
         }
     }
 }
