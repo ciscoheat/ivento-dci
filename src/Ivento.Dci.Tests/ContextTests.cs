@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using NUnit.Framework;
 using Should.Fluent;
@@ -287,7 +288,7 @@ namespace Ivento.Dci.Tests
             }
 
             [Test]
-            [ExpectedException(typeof(InvalidOperationException))]
+            [ExpectedException(typeof(TargetException))]
             public void ShouldThrowExceptionIfAnObjectIsSuppliedThatHasNoExecuteMethod()
             {
                 // Arrange
@@ -337,6 +338,38 @@ namespace Ivento.Dci.Tests
 
                 // Assert
                 list.Count.Should().Equal(3);
+            }
+
+            [Test]
+            public void ShouldPopTheContextStackCorrectlyIfUsingContextInvokationAndExceptionOccursInANestedContext()
+            {
+                // Arrange
+                var stack = new Stack();
+
+                Context.Initialize.Clear();
+                Context.Initialize.With(() => stack);
+
+                // Act
+                Context.Execute(new ContextStackLevel1(stack));
+
+                // Assert
+                // Made within ContextStackLevel1
+            }
+
+            [Test]
+            public void ShouldPopTheContextStackCorrectlyIfUsingMethodInvokationAndExceptionOccursInANestedContext()
+            {
+                // Arrange
+                var stack = new Stack();
+
+                Context.Initialize.Clear();
+                Context.Initialize.With(() => stack);
+
+                // Act
+                Context.Execute(new ContextStackLevel1(stack).Execute);
+
+                // Assert
+                // Made within ContextStackLevel1
             }
 
             #region Mock Contexts
@@ -400,6 +433,46 @@ namespace Ivento.Dci.Tests
 
                     if(_stackList.Count < _maxDepth)
                         Context.Execute(new ContextThatTracksStackDepth(_stackList, _maxDepth));
+                }
+            }
+
+            public class ContextStackLevel1
+            {
+                private readonly Stack _stack;
+
+                public ContextStackLevel1(Stack stack)
+                {
+                    _stack = stack;
+                }
+
+                public void Execute()
+                {
+                    try
+                    {
+                        Context.Execute(new ContextStackLevel2());
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        _stack.Count.Should().Equal(1);
+                        _stack.Peek().Should().Equal(this);
+                    }
+                    
+                }
+            }
+
+            public class ContextStackLevel2
+            {
+                public void Execute()
+                {
+                    Context.Execute(new ContextStackLevel3());
+                }
+            }
+
+            public class ContextStackLevel3
+            {
+                public void Execute()
+                {
+                    throw new InvalidOperationException("Stack should be popped up to level 1 now.");
                 }
             }
 

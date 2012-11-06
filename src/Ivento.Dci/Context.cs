@@ -9,8 +9,12 @@ namespace Ivento.Dci
     {
         private static Func<Stack> _stackAccessor;
 
+        // Thread-safe singleton
         private static readonly Lazy<ContextInitialization> InitializeLazy = new Lazy<ContextInitialization>(() => new ContextInitialization());
         public static ContextInitialization Initialize { get { return InitializeLazy.Value; } }
+
+        private const string ContextMethodDefaultExecutionName = "Execute";
+        private static string _contextMethodExecutionName = ContextMethodDefaultExecutionName;
 
         /// <summary>
         /// Return the current Context, ensuring that an object is the same as a Context property.
@@ -95,9 +99,27 @@ namespace Ivento.Dci
                 _stackAccessor = stackAccessor;
             }
 
+            /// <summary>
+            /// Clears the Context, so it can be initialized again. Also, the Context Execution name
+            /// is set to "Execute" again.
+            /// </summary>
             public void Clear()
             {
                 _stackAccessor = null;
+                _contextMethodExecutionName = ContextMethodDefaultExecutionName;
+            }
+
+            /// <summary>
+            /// Set the method invoked on the context if sent directly to Execute.
+            /// The default method name is "Execute".
+            /// </summary>
+            /// <param name="methodName">Method to search for on the Context.</param>
+            public void SetContextExecutionMethod(string methodName)
+            {
+                if (_stackAccessor != null)
+                    throw new ArgumentException("Context has already been initialized.");
+
+                _contextMethodExecutionName = methodName;
             }
         }
 
@@ -140,25 +162,29 @@ namespace Ivento.Dci
 
         public static T ExecuteAndReturn<T>(object context)
         {
-            var method = ContextExecuteMethod(context);
-            return (T)ExecuteAndReturn(() => method.Invoke(context, null), context);
+            return (T)ExecuteAndReturn(() => ExecuteContextMethod(context), context);
         }
 
         public static void Execute(object context)
         {
-            var method = ContextExecuteMethod(context);
-            Execute(() => method.Invoke(context, null), context);
+            Execute(() => ExecuteContextMethod(context), context);
         }
 
-        private static MethodInfo ContextExecuteMethod(object context)
+        private static object ExecuteContextMethod(object context)
         {
-            var type = context.GetType();
-            var executeMethod = type.GetMethod("Execute", BindingFlags.Public | BindingFlags.Instance);
+            try
+            {
+                var method = context.GetType().GetMethod(_contextMethodExecutionName, BindingFlags.Public | BindingFlags.Instance);
 
-            if (executeMethod == null)
-                throw new InvalidOperationException("No Execute method on Context object.");
+                if (method == null)
+                    throw new TargetException("No Execute method on Context object.");
 
-            return executeMethod;
+                return method.Invoke(context, null);
+            }
+            catch (TargetInvocationException e)
+            {
+                throw e.GetBaseException();
+            }
         }
 
         #endregion
