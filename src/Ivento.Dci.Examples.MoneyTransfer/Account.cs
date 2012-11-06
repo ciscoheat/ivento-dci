@@ -12,7 +12,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
     /// methods required to play Roles in the MoneyTransfer and PayBills Context.
     /// (Deposit and Withdraw)
     /// </summary>
-    public class Account
+    public sealed class Account
     {
         #region Roles and Role Contracts
 
@@ -52,7 +52,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 
         #endregion
 
-        #region Context fields
+        #region Context members
 
         // Theoretically, these methods and properties should be invoked with the 
         // static Context.Execute() for a true Context execution. But since they 

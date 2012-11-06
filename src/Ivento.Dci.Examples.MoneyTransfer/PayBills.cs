@@ -10,7 +10,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
     /// <summary>
     /// PayBills Context - Using an Account to pay bills to Creditors.
     /// </summary>
-    public class PayBills
+    public sealed class PayBills
     {
         #region Roles and Role Contracts
 
@@ -80,7 +80,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 
         #endregion
 
-        #region Execution
+        #region Context members
 
         public void Execute()
         {
