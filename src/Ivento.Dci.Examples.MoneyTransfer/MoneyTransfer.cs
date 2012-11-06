@@ -1,18 +1,38 @@
 ﻿namespace Ivento.Dci.Examples.MoneyTransfer
 {
-    public class MoneyTransfer
+    public sealed class MoneyTransfer
     {
+        #region Roles and Role Contracts
+        
+        public SourceAccount Source { get; private set; }
+        public interface SourceAccount
+        {
+            void Withdraw(decimal amount);
+        }
+
+        public DestinationAccount Destination { get; private set; }
+        public interface DestinationAccount
+        {
+            void Deposit(decimal amount);
+        }
+
+        public decimal Amount { get; private set; }
+
+        #endregion
+
+        #region RolePlayers
+
         public MoneyTransferRolePlayers RolePlayers { get; private set; }
-        public class MoneyTransferRolePlayers
+        public sealed class MoneyTransferRolePlayers
         {
             public Account Source { get; set; }
             public Account Destination { get; set; }
             public decimal Amount { get; set; }
         }
 
-        public SourceAccount Source { get; private set; }
-        public DestinationAccount Destination { get; private set; }
-        public decimal Amount { get; private set; }
+        #endregion
+
+        #region Constructors and Role bindings
 
         public MoneyTransfer(Account source, Account destination, decimal amount)
         {
@@ -27,21 +47,19 @@
             Amount = RolePlayers.Amount;
         }
 
+        #endregion
+
+        #region Execution
+
         public void Execute()
         {
             Source.Transfer();
         }
 
-        public interface SourceAccount
-        {
-            void Withdraw(decimal amount);
-        }
-
-        public interface DestinationAccount
-        {
-            void Deposit(decimal amount);
-        }
+        #endregion
     }
+
+    #region Methodful Roles
 
     static class MoneyTransferMethodfulRoles
     {
@@ -53,4 +71,6 @@
             context.Source.Withdraw(context.Amount);
         }
     }
+
+    #endregion
 }

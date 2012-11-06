@@ -6,15 +6,34 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 {
     public class PayBills
     {
+        #region Roles and Role Contracts
+
+        public SourceAccount Source { get; private set; }
+        public interface SourceAccount
+        {
+            void Withdraw(decimal amount);
+        }
+
+        public BillCreditors Creditors { get; private set; }
+        public interface BillCreditors : IEnumerable<Creditor>
+        {}
+
+        #endregion
+
+        #region RolePlayers
+
         public PayBillsRolePlayers RolePlayers { get; private set; }
-        public class PayBillsRolePlayers
+        public sealed class PayBillsRolePlayers
         {
             public Account Source { get; set; }
             public IEnumerable<Creditor> Creditors { get; set; }
+
+            internal PayBillsRolePlayers() {}
         }
 
-        public SourceAccount Source { get; private set; }
-        public BillCreditors Creditors { get; private set; }
+        #endregion
+
+        #region Constructors and Role bindings
 
         public PayBills(Account source, IEnumerable<Creditor> creditors)
         {
@@ -28,19 +47,19 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             Creditors = RolePlayers.Creditors.ActLike<BillCreditors>();
         }
 
+        #endregion
+
+        #region Execution
+
         public void Execute()
         {
             Source.PayBills();
         }
 
-        public interface SourceAccount
-        {
-            void Withdraw(decimal amount);
-        }
-
-        public interface BillCreditors : IEnumerable<Creditor>
-        {}
+        #endregion
     }
+
+    #region Methodful Roles
 
     static class PayBillsMethodfulRoles
     {
@@ -56,4 +75,6 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             });
         }
     }
+
+    #endregion
 }

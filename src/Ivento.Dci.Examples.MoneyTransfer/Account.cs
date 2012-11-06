@@ -6,13 +6,25 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 {
     public class Account
     {
+        #region Roles and Role Contracts
+
+        public AccountLedgers Ledgers { get; private set; }
+        public interface AccountLedgers : ICollection<LedgerEntry>
+        {}
+
+        #endregion
+
+        #region RolePlayers
+
         public AccountRolePlayers RolePlayers { get; private set; }
         public class AccountRolePlayers
         {
             public ICollection<LedgerEntry> Ledgers { get; set; }
         }
 
-        public AccountLedgers Ledgers { get; private set; }
+        #endregion
+
+        #region Constructors and Role bindings
 
         public Account(ICollection<LedgerEntry> ledgers)
         {
@@ -24,6 +36,10 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         {
             Ledgers = RolePlayers.Ledgers.ActLike<AccountLedgers>();
         }
+
+        #endregion
+
+        #region Context fields
 
         public decimal Balance
         {
@@ -40,11 +56,12 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             Ledgers.AddEntry("Withdrawing", -amount);
         }
 
-        public interface AccountLedgers : ICollection<LedgerEntry>
-        {}
+        #endregion
     }
 
-    internal static class AccountLedgersTraits
+    #region Methodful Roles
+
+    static class AccountMethodfulRoles
     {
         public static void AddEntry(this Account.AccountLedgers ledgers, string message, decimal amount)
         {
@@ -56,4 +73,6 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             return ledgers.Sum(e => e.Amount);
         }
     }
+
+    #endregion
 }
