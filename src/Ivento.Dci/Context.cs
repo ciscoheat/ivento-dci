@@ -127,10 +127,15 @@ namespace Ivento.Dci
                 throw new NullReferenceException("Context is not initialized.");
 
             _stackAccessor().Push(context ?? action.Target);
-            var output = action();
-            _stackAccessor().Pop();
 
-            return output;
+            try
+            {
+                return action();
+            }
+            finally
+            {
+                _stackAccessor().Pop();
+            }
         }
 
         public static T ExecuteAndReturn<T>(object context)
