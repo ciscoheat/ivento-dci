@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Account.cs" />
+    <Compile Include="AccountException.cs" />
     <Compile Include="Data\Creditor.cs" />
     <Compile Include="Data\LedgerEntry.cs" />
     <Compile Include="MoneyTransfer.cs" />

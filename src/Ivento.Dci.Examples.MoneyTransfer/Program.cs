@@ -45,24 +45,29 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             Console.WriteLine();
             Console.WriteLine("1 - Basic money transfer");
             Console.WriteLine("2 - Pay bills");
+            Console.WriteLine("3 - Pay bills without enough money");
             Console.WriteLine();
 
-            // Detect choice. Amazing how detecting a key can be so awkward.
-            ConsoleKeyInfo key;
-            do
-            {
-                key = Console.ReadKey(true);
-            } while (key.Key != ConsoleKey.D1 && key.Key != ConsoleKey.D2);
+            // Detect choice.
+            var key = Console.ReadKey(true);
 
             var menuAction = new Dictionary<ConsoleKey, Action>
                                  {
                                      {ConsoleKey.D1, () => BasicMoneyTransfer(source, destination)},
-                                     {ConsoleKey.D2, () => PayBills(source)}
+                                     {ConsoleKey.D2, () => PayBills(ref source)},
+                                     {ConsoleKey.D3, () => PayBills(ref source, enoughMoney: false)}
                                  };
 
             // Run the chosen example. Go to the BasicMoneyTransfer method below for
             // following the code comments.
-            menuAction[key.Key]();
+            if (menuAction.ContainsKey(key.Key))
+            {
+                menuAction[key.Key]();
+            }
+            else
+            {
+                Console.WriteLine("No example selected.");
+            }
 
             // Output the account ledgers after the examples are done.
 
@@ -112,7 +117,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             Console.WriteLine("Destination account      " + destination.Balance.ToString("c"));
         }
 
-        private static void PayBills(Account source)
+        private static void PayBills(ref Account source, bool enoughMoney = true)
         {
             // Create some creditors that wants money from the supplied account.
             var creditors = new List<Creditor>
@@ -132,6 +137,17 @@ namespace Ivento.Dci.Examples.MoneyTransfer
                                         }
                                 };
 
+            // Create a new account with little money if enoughMoney is false.
+            if (!enoughMoney)
+            {
+                source = new Account(new List<LedgerEntry>
+                                         {
+                                             new LedgerEntry {Message = "From mom", Amount = 80m}
+                                         }
+                                    );
+            }
+
+
             // Create the context using the supplied account and the creditors.
             var context = new PayBills(source, creditors);
 
@@ -143,7 +159,15 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             creditors.ForEach(Console.WriteLine);
 
             // Execute the context.
-            context.Execute();
+            try
+            {
+                context.Execute();
+            }
+            catch (AccountException e)
+            {
+                Console.WriteLine();
+                Console.WriteLine(e.Message);
+            }
 
             Console.WriteLine();
             Console.WriteLine("AFTER");

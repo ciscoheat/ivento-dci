@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Ivento.Dci.Examples.MoneyTransfer.Data;
 
@@ -14,11 +15,13 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         #region Roles and Role Contracts
 
         // First role for PayBills - The Account that should pay the bills.
-        // Its Role Contract declares that it must support Withdrawing money.
+        // Its Role Contract declares that it must support Withdrawing money
+        // and read the balance.
         internal SourceAccount Source { get; private set; }
         public interface SourceAccount
         {
             void Withdraw(decimal amount);
+            decimal Balance { get; }
         }
 
         // Second role is the Creditors, a list of entities that will receive
@@ -104,6 +107,15 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 
             // Get the current Creditor list, enumerating it to a list so it's not modified.
             var creditors = context.Creditors.ToList();
+
+            // If not enough money to pay all creditors, don't pay anything.
+            var surplus = source.Balance - creditors.Sum(c => c.AmountOwed);
+            if (surplus < 0)
+            {
+                throw new AccountException(
+                    string.Format("Not enough money on account to pay all bills.\r\n{0:c} more is needed.", Math.Abs(surplus)));
+            }
+
             creditors.ForEach(creditor =>
             {
                 // For each creditor, create a MoneyTransfer Context using data from
