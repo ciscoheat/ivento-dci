@@ -2,9 +2,9 @@
 
 namespace Ivento.Dci.Examples.Djikstra
 {
-    class LittleCityMap : ManhattanGeometry
+    class CityMap : ManhattanGeometry
     {
-        public LittleCityMap() : base('i')
+        public CityMap() : base(fromATo: 'i')
         {
             SetDistance('a', 'b', 2, Direction.East);
             SetDistance('b', 'c', 3, Direction.East);

@@ -43,7 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LittleCityMap.cs" />
+    <Compile Include="CityMap.cs" />
     <Compile Include="Contexts\CalculateShortestPath.cs" />
     <Compile Include="Data\Edge.cs" />
     <Compile Include="Data\ManhattanGeometry.cs" />

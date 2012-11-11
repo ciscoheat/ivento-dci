@@ -20,7 +20,7 @@ namespace Ivento.Dci.Examples.Djikstra
             Context.Initialize.InStaticScope();
 
             // Create and print the city map to use.
-            var map = new LittleCityMap();
+            var map = new CityMap();
 
             Console.WriteLine("City map:");
             Console.WriteLine();

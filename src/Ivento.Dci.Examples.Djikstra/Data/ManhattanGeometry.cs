@@ -26,10 +26,10 @@ namespace Ivento.Dci.Examples.Djikstra.Data
         /// <summary>
         /// Initialize a map with nodes.
         /// </summary>
-        /// <param name="endLetter">End node name. Starting with lowercase a.</param>
-        public ManhattanGeometry(char endLetter) : this()
+        /// <param name="fromATo">End node name. Starting with lowercase a.</param>
+        public ManhattanGeometry(char fromATo) : this()
         {
-            for (var letter = 'a'; letter <= endLetter; letter++)
+            for (var letter = 'a'; letter <= fromATo; letter++)
             {                
                 Nodes.Add(new Node { Name = letter.ToString(CultureInfo.InvariantCulture) });
             }
