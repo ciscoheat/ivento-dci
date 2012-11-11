@@ -43,12 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Account.cs" />
     <Compile Include="AccountException.cs" />
+    <Compile Include="Contexts\Account.cs" />
+    <Compile Include="Contexts\MoneyTransfer.cs" />
+    <Compile Include="Contexts\PayBills.cs" />
     <Compile Include="Data\Creditor.cs" />
     <Compile Include="Data\LedgerEntry.cs" />
-    <Compile Include="MoneyTransfer.cs" />
-    <Compile Include="PayBills.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

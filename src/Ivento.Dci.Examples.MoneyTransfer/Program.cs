@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Ivento.Dci.Examples.MoneyTransfer.Contexts;
 using Ivento.Dci.Examples.MoneyTransfer.Data;
 
 namespace Ivento.Dci.Examples.MoneyTransfer
@@ -99,7 +100,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         private static void BasicMoneyTransfer(Account source, Account destination)
         {
             // Create the context using the supplied accounts. 245 will be the transfer amount.
-            var context = new MoneyTransfer(source, destination, 245m);
+            var context = new Contexts.MoneyTransfer(source, destination, 245m);
 
             Console.WriteLine("BEFORE");
             Console.WriteLine("Source account           " + source.Balance.ToString("c"));

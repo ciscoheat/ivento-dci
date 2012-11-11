@@ -1,4 +1,6 @@
-﻿namespace Ivento.Dci.Examples.MoneyTransfer.Data
+﻿using Ivento.Dci.Examples.MoneyTransfer.Contexts;
+
+namespace Ivento.Dci.Examples.MoneyTransfer.Data
 {
     public class Creditor
     {

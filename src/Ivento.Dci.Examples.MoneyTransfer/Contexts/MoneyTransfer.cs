@@ -1,4 +1,4 @@
-﻿namespace Ivento.Dci.Examples.MoneyTransfer
+namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
 {
     /// <summary>
     /// MoneyTransfer Context - Transferring money between two accounts.

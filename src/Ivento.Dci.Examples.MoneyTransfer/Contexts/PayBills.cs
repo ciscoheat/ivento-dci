@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Ivento.Dci.Examples.MoneyTransfer.Data;
 
-namespace Ivento.Dci.Examples.MoneyTransfer
+namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
 {
     // If you haven't, see MoneyTransfer.cs for a more detailed introduction to Context objects.
 
@@ -93,7 +93,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
                 // For each creditor, create a MoneyTransfer Context. Because the Context requires an Account
                 // object and sourceAccount is a SourceAccountRole, use the IsA<T> extension method
                 // to get the original Account object.
-                var transferContext = new MoneyTransfer(sourceAccount.IsA<Account>(), creditor.Account, creditor.AmountOwed);
+                var transferContext = new Contexts.MoneyTransfer(sourceAccount.IsA<Account>(), creditor.Account, creditor.AmountOwed);
 
                 // When the whole context object can be supplied to Context.Execute, there
                 // is no need to set the context explicitly. Context.Execute will look for

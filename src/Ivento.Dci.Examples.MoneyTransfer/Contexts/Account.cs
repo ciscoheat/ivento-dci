@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Ivento.Dci.Examples.MoneyTransfer.Data;
 
-namespace Ivento.Dci.Examples.MoneyTransfer
+namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
 {
     // If you haven't, see MoneyTransfer.cs for a more detailed introduction to Context objects.
 
