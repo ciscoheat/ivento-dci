@@ -1,36 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Ivento.Dci.Examples.Djikstra.Data;
 using System.Linq;
 
 namespace Ivento.Dci.Examples.Djikstra.Contexts
 {
+    /// <summary>
+    /// DCI Implementation of the Djikstra algorithm.
+    /// Based on code from http://fulloo.info/Examples/RubyExamples/Dijkstra/
+    /// Comments from Wikipedia: http://en.wikipedia.org/wiki/Dijkstra's_algorithm
+    /// Visual explanation of the algorithm: http://www.youtube.com/watch?v=psg2-6-CEXg
+    /// </summary>
+    /// <remarks>
+    /// The MoneyTransfer example is a much more detailed explanation of DCI.
+    /// Use that for a beginners tutorial.
+    /// </remarks>
     public sealed class CalculateShortestPath
     {
-        internal const int Infinity = int.MaxValue / 4;
-
-        internal Node Origin { get; private set; }
-        internal Node Destination { get; private set; }
-
-        internal Node Current { get; private set; }
-
-        internal Node EastNeighbor { get { return Map.EastNeighborOf.ContainsKey(Current) ? Map.EastNeighborOf[Current] : null; } }
-        internal Node SouthNeighbor { get { return Map.SouthNeighborOf.ContainsKey(Current) ? Map.SouthNeighborOf[Current] : null; } }
-
-        internal IDictionary<Node, int> TentativeDistance;
-        internal IDictionary<Node, Node> PathTo { get; private set; }
-        internal HashSet<Node> Unvisited { get; private set; }
-
         #region Roles and Role Contracts
 
-        public interface CurrentIntersectionRole
-        {}
+        internal TentativeDistanceRole TentativeDistance { get; private set; }
+        public class TentativeDistanceRole : Dictionary<Node, int>
+        {
+            /// <summary>
+            /// Assign to every node a tentative distance value: 
+            /// set it to zero for our initial node and to infinity for all other nodes.
+            /// </summary>
+            public TentativeDistanceRole(IEnumerable<Node> nodes, Node origin) 
+                : base(nodes.ToDictionary(n => n, n => ManhattanGeometry.Infinity))
+            {
+                this[origin] = 0;
+            }
+        }
 
-        public interface DistanceLabeledGraphNodeRole
-        {}
+        internal UnvisitedRole Unvisited { get; private set; }
+        public class UnvisitedRole : HashSet<Node>
+        {
+            /// <summary>
+            /// A set of the unvisited nodes called the unvisited set consisting of all the nodes 
+            /// except the initial node.
+            /// </summary>
+            public UnvisitedRole(IEnumerable<Node> collection, Node origin) : base(collection)
+            {
+                Remove(origin);
+            }
+        }
 
-        public interface NeighborNodeRole
-        {}
+        // The Node can play three different roles.
+        internal Node Current { get; private set; }
+        public interface CurrentIntersectionNodeRole {}
+        public interface DistanceLabeledGraphNodeRole {}
+        public interface NeighborNodeRole {}
 
         internal MapRole Map { get; private set; }
         public interface MapRole
@@ -43,7 +62,12 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
 
         #endregion
 
-        #region RolePlayers
+        #region Private variables
+
+        // Storage for origin, destination and best path.
+        private Node _origin;
+        private Node _destination;
+        private IDictionary<Node, Node> _pathTo;
 
         #endregion
 
@@ -57,26 +81,15 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
         private void BindRoles(Node origin, Node target, ManhattanGeometry geometry)
         {
             // Variable initialization
-            PathTo = new Dictionary<Node, Node>();
-            Origin = origin;
-            Destination = target;
-
-            // Assign to every node a tentative distance value: 
-            // set it to zero for our initial node and to infinity for all other nodes.
-            TentativeDistance = new Dictionary<Node, int>(geometry.Nodes.Count);
-            geometry.Nodes.ToList().ForEach(node => TentativeDistance[node] = Infinity);
-            TentativeDistance[origin] = 0;
-
-            // Mark all nodes unvisited. 
-            // Set the initial node as current. 
-            // Create a set of the unvisited nodes called the unvisited set 
-            // consisting of all the nodes except the initial node.
-            Unvisited = new HashSet<Node>(geometry.Nodes);
-            Unvisited.Remove(origin);
-            Current = origin;
+            _pathTo = new Dictionary<Node, Node>();
+            _origin = origin;
+            _destination = target;
 
             // Bind RolePlayers to Roles
+            Current = origin; // Set the initial node as current. 
             Map = geometry.ActLike<MapRole>();
+            Unvisited = new UnvisitedRole(geometry.Nodes, origin);
+            TentativeDistance = new TentativeDistanceRole(geometry.Nodes, origin);
         }
 
         #endregion
@@ -95,19 +108,20 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
             // it with a neighbor B has length 2, then the distance to B (through A) will be 6+2=8. If this distance 
             // is less than the previously recorded tentative distance of B, then overwrite that distance. 
             // Even though a neighbor has been examined, it is not marked as "visited" at this time, and it 
-            // remains in the unvisited set.            
+            // remains in the unvisited set.
 
-            var unvisitedNeighbors = Current.ActLike<CurrentIntersectionRole>().UnvisitedNeighbors();
+            var unvisitedNeighbors = Current.ActLike<CurrentIntersectionNodeRole>().UnvisitedNeighbors();
 
             if(unvisitedNeighbors.Count > 0)
             {
                 foreach (var neighbor in unvisitedNeighbors.AllActLike<NeighborNodeRole>())
                 {
+                    // Using AllActLike here to make the contents of an IEnumerable play roles automatically.
                     var netDistance = Current.ActLike<DistanceLabeledGraphNodeRole>().TentativeDistance() + 
                         Map.DistanceBetween(Current, neighbor.IsA<Node>());
 
                     if (neighbor.RelableNodeAs(netDistance))
-                        PathTo[neighbor.IsA<Node>()] = Current;
+                        _pathTo[neighbor.IsA<Node>()] = Current;
                 }
             }
 
@@ -122,7 +136,7 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
             if (Unvisited.Any())
             {
                 // Set the unvisited node marked with the smallest tentative distance as the next "current node" 
-                // and go back to step 3.
+                // and calculate next unvisited node.
                 var nextContext = CloneContext(Map.NearestUnvisitedNodeToTarget());
                 return Context.ExecuteAndReturn<List<Node>>(nextContext);
             }
@@ -132,28 +146,37 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
 
         #endregion
 
+        #region Helper methods
+
+        /// <summary>
+        /// Call at the end of CalculatePath. Generate the best node path.
+        /// </summary>
         private List<Node> GeneratePath()
         {
             var output = new List<Node>();
-            var n = Destination;
+            var n = _destination;
 
-            while (n != Origin)
+            while (n != _origin)
             {
                 output.Insert(0, n);
-                n = PathTo[n];
+                n = _pathTo[n];
             }
 
-            output.Insert(0, Origin);
+            output.Insert(0, _origin);
             return output;
         }
 
         private CalculateShortestPath CloneContext(Node nextNode)
         {
-            var clone = (CalculateShortestPath) MemberwiseClone();
+            // The only thing that need to change is the Current node,
+            // so the easiest way is to clone the Context and change context.Current.
+            var clone = (CalculateShortestPath)MemberwiseClone();
             clone.Current = nextNode;
 
             return clone;
         }
+
+        #endregion
     }
 
     #region Methodful Roles
@@ -181,9 +204,9 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
         {
             var context = Context.Current<CalculateShortestPath>(map, c => c.Map);
 
-            var min = CalculateShortestPath.Infinity;
+            var min = ManhattanGeometry.Infinity;
             Node selected = null;
-
+            
             foreach (var node in context.Unvisited.AllActLike<CalculateShortestPath.DistanceLabeledGraphNodeRole>())
             {
                 var distance = node.TentativeDistance();
@@ -198,15 +221,17 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
 
         #endregion
 
-        #region CurrentIntersection
+        #region CurrentIntersectionNode
 
-        public static IList<Node> UnvisitedNeighbors(this CalculateShortestPath.CurrentIntersectionRole currentIntersection)
+        public static IList<Node> UnvisitedNeighbors(this CalculateShortestPath.CurrentIntersectionNodeRole currentIntersectionNode)
         {
+            var context = Context.Current<CalculateShortestPath>(currentIntersectionNode, c => c.Current);
+
             var output = new List<Node>();
 
-            var unvisited = currentIntersection.Unvisited();
-            var south = currentIntersection.SouthNeighbor();
-            var east = currentIntersection.EastNeighbor();
+            var unvisited = context.Unvisited;
+            var south = currentIntersectionNode.SouthNeighbor();
+            var east = currentIntersectionNode.EastNeighbor();
 
             if (south != null && unvisited.Contains(south))
                 output.Add(south);
@@ -217,22 +242,20 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
             return output;
         }
 
-        public static HashSet<Node> Unvisited(this CalculateShortestPath.CurrentIntersectionRole currentIntersection)
+        public static Node SouthNeighbor(this CalculateShortestPath.CurrentIntersectionNodeRole currentIntersectionNode)
         {
-            var context = Context.Current<CalculateShortestPath>(currentIntersection, c => c.Current);
-            return context.Unvisited;
+            var context = Context.Current<CalculateShortestPath>(currentIntersectionNode, c => c.Current);
+
+            var neighborOf = context.Map.SouthNeighborOf;
+            return neighborOf.ContainsKey(context.Current) ? neighborOf[context.Current] : null;
         }
 
-        public static Node SouthNeighbor(this CalculateShortestPath.CurrentIntersectionRole currentIntersection)
+        public static Node EastNeighbor(this CalculateShortestPath.CurrentIntersectionNodeRole currentIntersectionNode)
         {
-            var context = Context.Current<CalculateShortestPath>(currentIntersection, c => c.Current);
-            return context.SouthNeighbor;
-        }
+            var context = Context.Current<CalculateShortestPath>(currentIntersectionNode, c => c.Current);
 
-        public static Node EastNeighbor(this CalculateShortestPath.CurrentIntersectionRole currentIntersection)
-        {
-            var context = Context.Current<CalculateShortestPath>(currentIntersection, c => c.Current);
-            return context.EastNeighbor;
+            var neighborOf = context.Map.EastNeighborOf;
+            return neighborOf.ContainsKey(context.Current) ? neighborOf[context.Current] : null;
         }
 
         #endregion
@@ -255,7 +278,7 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
 
         #endregion
 
-        #region Neighbor
+        #region NeighborNode
 
         public static bool RelableNodeAs(this CalculateShortestPath.NeighborNodeRole node, int distance)
         {

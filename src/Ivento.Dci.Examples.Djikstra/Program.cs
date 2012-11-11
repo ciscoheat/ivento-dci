@@ -5,9 +5,8 @@ using Ivento.Dci.Examples.Djikstra.Contexts;
 namespace Ivento.Dci.Examples.Djikstra
 {
     /// <summary>
-    /// DCI Implementation of the Djikstra algorithm.
-    /// Based on code from http://fulloo.info/Examples/RubyExamples/Dijkstra/
-    /// Visual explanation of the algorithm: http://www.youtube.com/watch?v=psg2-6-CEXg
+    /// Example of using DCI for the Djikstra pathfinding algorithm.
+    /// http://en.wikipedia.org/wiki/Dijkstra's_algorithm
     /// </summary>
     /// <remarks>
     /// The MoneyTransfer example is a much more detailed explanation of DCI.
@@ -17,19 +16,27 @@ namespace Ivento.Dci.Examples.Djikstra
     {
         static void Main()
         {
+            // Initialize the context as a static (global) scope.
             Context.Initialize.InStaticScope();
 
-            var map = new CityMap();
+            // Create and print the city map to use.
+            var map = new LittleCityMap();
 
             Console.WriteLine("City map:");
             Console.WriteLine();
-            Console.WriteLine(map);            
+            Console.WriteLine(map);
 
-            var path = new CalculateShortestPath(map.Nodes[0], map.Nodes[8], map).Execute();
+            // Pick origin and destination nodes for path.
+            var origin = map.Nodes.Single(n => n.Name == "a");
+            var destination = map.Nodes.Single(n => n.Name == "i");
 
+            // Execute the Context.
+            var path = new CalculateShortestPath(origin, destination, map).Execute();
+
+            // Print the result.
             Console.WriteLine();
-            Console.WriteLine("Best path from a to i:");
-            Console.WriteLine(string.Join(" -> ", path.Select(n => n.ToString())));
+            Console.WriteLine(string.Format("Best path from {0} to {1}:", origin, destination));
+            Console.WriteLine(string.Join(" -> ", path));
 
             Console.ReadKey(true);
         }
