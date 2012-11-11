@@ -19,20 +19,6 @@
 
         #endregion
 
-        #region RolePlayers
-
-        public ContextTemplateRolePlayers RolePlayers { get; private set; }
-        public sealed class ContextTemplateRolePlayers
-        {
-            // Using the same properties as sent to the BindRoles method.
-            public string Source { get; set; }
-
-            // It should not be exposed to the outside world.
-            internal ContextTemplateRolePlayers() {}
-        }
-
-        #endregion
-
         #region Constructors and Role bindings
 
         // The BindRoles is not only binding now, but also creating the 
@@ -46,9 +32,6 @@
 
         private void BindRoles(string roleName)
         {
-            // Create RolePlayers
-            RolePlayers = new ContextTemplateRolePlayers {Source = roleName};
-
             // Bind RolePlayers to Roles
             RoleName = roleName.ActLike<RoleContract>();
         }

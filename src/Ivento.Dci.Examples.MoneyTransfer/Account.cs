@@ -21,17 +21,9 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         // Since no Methodful Roles are using the Ledgers role from a 
         // Context method, it can be private.
 
-        private AccountLedgers Ledgers { get; set; }
-        public interface AccountLedgers : ICollection<LedgerEntry>
+        private LedgersRole Ledgers { get; set; }
+        public interface LedgersRole : ICollection<LedgerEntry>
         {}
-
-        #endregion
-
-        #region RolePlayers
-
-        // As with the MoneyTransfer Context, no nested Contexts are used so
-        // there is no need for accessing the original RolePlayer objects.
-        // See PayBills for an example of RolePlayers and nested Contexts.
 
         #endregion
 
@@ -47,7 +39,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
 
         private void BindRoles(ICollection<LedgerEntry> ledgers)
         {
-            Ledgers = ledgers.ActLike<AccountLedgers>();
+            Ledgers = ledgers.ActLike<LedgersRole>();
         }
 
         #endregion
@@ -91,7 +83,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         /// <summary>
         /// Changing the account amount means adding an entry to the Ledgers.
         /// </summary>
-        public static void AddEntry(this Account.AccountLedgers ledgers, string message, decimal amount)
+        public static void AddEntry(this Account.LedgersRole ledgers, string message, decimal amount)
         {
             ledgers.Add(new LedgerEntry { Message = message, Amount = amount });
         }
@@ -99,7 +91,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         /// <summary>
         /// The Account balance is the sum of all Ledger amounts.
         /// </summary>
-        public static decimal Balance(this Account.AccountLedgers ledgers)
+        public static decimal Balance(this Account.LedgersRole ledgers)
         {
             return ledgers.Sum(e => e.Amount);
         }
