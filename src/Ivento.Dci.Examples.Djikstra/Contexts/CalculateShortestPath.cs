@@ -229,7 +229,7 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
 
         #endregion
 
-        #region CurrentIntersectionNode
+        #region CurrentIntersection
 
         public static IList<Node> UnvisitedNeighbors(this CalculateShortestPath.CurrentIntersectionRole currentIntersection)
         {
@@ -268,7 +268,7 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
 
         #endregion
 
-        #region DistanceLabeledGraphNode
+        #region DistanceGraph
 
         public static int TentativeDistance(this CalculateShortestPath.DistanceGraphRole distanceGraph)
         {
@@ -286,7 +286,7 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
 
         #endregion
 
-        #region NeighborNode
+        #region Neighbor
 
         public static bool RelableNodeAs(this CalculateShortestPath.NeighborRole neighbor, int distance)
         {
