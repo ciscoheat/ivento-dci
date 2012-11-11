@@ -10,30 +10,36 @@
     {
         #region Roles and Role Contracts
 
-        internal RoleContract RoleName { get; private set; }
-        public interface RoleContract
+        // Note the naming convention: "ROLE" for the identifier, "ROLERole" for the Role Contract.
+
+        // In this case: RoleName and RoleNameRole
+        internal RoleNameRole RoleName { get; private set; }
+        public interface RoleNameRole
         {
-            void RolePlayerMethod();
-            decimal RolePlayerProperty { get; }
+            decimal SomeProperty { get; }
+        }
+
+        // Role name: AnotherRoleName, Contract type: AnotherRoleNameRole
+        internal AnotherRoleNameRole AnotherRoleName { get; private set; }
+        public interface AnotherRoleNameRole
+        {
+            void SomeMethod();
         }
 
         #endregion
 
         #region Constructors and Role bindings
 
-        // The BindRoles is not only binding now, but also creating the 
-        // PayBillsRolePlayers object so it can be used for creating
-        // nested contexts.
-
-        public ContextTemplate(string roleName)
+        public ContextTemplate(object roleName, object anotherRoleName)
         {
-            BindRoles(roleName);
+            BindRoles(roleName, anotherRoleName);
         }
 
-        private void BindRoles(string roleName)
+        private void BindRoles(object roleName, object anotherRoleName)
         {
             // Bind RolePlayers to Roles
-            RoleName = roleName.ActLike<RoleContract>();
+            RoleName = roleName.ActLike<RoleNameRole>();
+            AnotherRoleName = anotherRoleName.ActLike<AnotherRoleNameRole>();
         }
 
         #endregion
@@ -57,14 +63,16 @@
         /// <summary>
         /// Use case implementation of ContextTemplate.
         /// </summary>
-        public static void DoSomething(this ContextTemplate.RoleContract roleName)
+        public static void DoSomething(this ContextTemplate.RoleNameRole roleName)
         {
-            // Get the current Context
+            // Get the current Context. Optional arguments to make sure that the 
+            // underlying object is the same as the Context Role.
             var context = Context.Current<ContextTemplate>(roleName, c => c.RoleName);
 
-            // Implement the use case with the context roles.
-            if(context.RoleName.RolePlayerProperty > 0)
-                context.RoleName.RolePlayerMethod();
+            // Finally, implement the use case with the Context Roles.
+
+            if(roleName.SomeProperty > 0)
+                context.AnotherRoleName.SomeMethod();
         }
     }
 
