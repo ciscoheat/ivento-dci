@@ -10,7 +10,6 @@ namespace Ivento.Dci
         private Func<Stack> _stackAccessor;
         public IDependencyResolver DependencyResolver { get; private set; }
 
-        // Thread-safe singleton
         public ContextInitialization Initialize { get; private set; }
 
         private const string ContextMethodDefaultExecutionName = "Execute";
@@ -47,10 +46,6 @@ namespace Ivento.Dci
         /// <param name="contextRole">Context property that should be the same as the object</param>
         /// <returns>Context in initialized scope</returns>
         /// <exception cref="InvalidOperationException">If the object isn't equal to the specified Context property.</exception>
-        /// <remarks>
-        /// Sometimes the underlying RolePlayer must be accessed instead of the Role (interface) in the extension method,
-        /// for example when creating nested contexts. This overload ensures that those objects are one and the same.
-        /// </remarks>
         public T Current<T>(object role, Func<T, object> contextRole) where T : class
         {
             var currentContext = Current<T>();

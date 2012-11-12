@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Ivento.Dci
 {
@@ -31,10 +32,6 @@ namespace Ivento.Dci
         /// <param name="contextRole">Context property that should be the same as the object</param>
         /// <returns>Context in initialized scope</returns>
         /// <exception cref="InvalidOperationException">If the object isn't equal to the specified Context property.</exception>
-        /// <remarks>
-        /// Sometimes the underlying RolePlayer must be accessed instead of the Role (interface) in the extension method,
-        /// for example when creating nested contexts. This overload ensures that those objects are one and the same.
-        /// </remarks>
         public static T Current<T>(object role, Func<T, object> contextRole) where T : class
         {
             return CurrentContext.Current(role, contextRole);
@@ -71,6 +68,30 @@ namespace Ivento.Dci
         public static void Execute(object context)
         {
             CurrentContext.Execute(context);
+        }
+
+        #endregion
+
+        #region Dependency Injection
+
+        public static T Resolve<T>() where T : class
+        {
+            return CurrentContext.DependencyResolver.GetService<T>();
+        }
+
+        public static object Resolve(Type type)
+        {
+            return CurrentContext.DependencyResolver.GetService(type);
+        }
+
+        public static IEnumerable<T> ResolveAll<T>() where T : class
+        {
+            return CurrentContext.DependencyResolver.GetServices<T>();
+        }
+
+        public static IEnumerable<object> ResolveAll(Type type)
+        {
+            return CurrentContext.DependencyResolver.GetServices(type);
         }
 
         #endregion
