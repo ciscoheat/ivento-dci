@@ -74,7 +74,7 @@ namespace Ivento.Dci
 
         #region Dependency Injection
 
-        public static T Resolve<T>() where T : class
+        public static T Resolve<T>()
         {
             return CurrentContext.DependencyResolver.GetService<T>();
         }
@@ -84,7 +84,7 @@ namespace Ivento.Dci
             return CurrentContext.DependencyResolver.GetService(type);
         }
 
-        public static IEnumerable<T> ResolveAll<T>() where T : class
+        public static IEnumerable<T> ResolveAll<T>()
         {
             return CurrentContext.DependencyResolver.GetServices<T>();
         }

@@ -20,13 +20,11 @@ namespace Ivento.Dci
     public static class DependencyResolverExtensions
     {
         public static TService GetService<TService>(this IDependencyResolver resolver)
-            where TService : class
         {
             return (TService)resolver.GetService(typeof(TService));
         }
 
         public static IEnumerable<TService> GetServices<TService>(this IDependencyResolver resolver)
-            where TService : class
         {
             return resolver.GetServices(typeof(TService)).Cast<TService>();
         }

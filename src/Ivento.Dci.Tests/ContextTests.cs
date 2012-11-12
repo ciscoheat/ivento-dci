@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using NUnit.Framework;
@@ -477,6 +478,42 @@ namespace Ivento.Dci.Tests
             }
 
             #endregion
+        }
+
+        public class TheSetDependencyResolverMethod : ContextTests
+        {
+            class MockDependencyResolver : IDependencyResolver
+            {
+                public object GetService(Type serviceType)
+                {
+                    return serviceType == typeof(string) ? "MockString" : null;
+                }
+
+                public IEnumerable<object> GetServices(Type serviceType)
+                {
+                    return serviceType == typeof(string) ? new[] { "MockString", "AnotherMockString" } : new object[] {};
+                }
+            }
+
+            [Test]
+            public void ShouldSetTheDependencyResolverSoItCanBeUsedInContext()
+            {
+                // Arrange
+                var di = new MockDependencyResolver();
+
+                // Act
+                Context.Initialize.SetDependencyResolver(di);
+
+                // Assert
+                Context.Resolve<DciContext>().Should().Be.Null();
+                Context.ResolveAll<DciContext>().Count().Should().Equal(0);
+
+                Context.Resolve<string>().Should().Equal("MockString");
+                Context.ResolveAll<string>().Should().Equal(new[] { "MockString", "AnotherMockString" });
+
+                Context.Resolve(typeof(string)).Should().Equal("MockString");
+                Context.ResolveAll(typeof(string)).Should().Equal(new[] { "MockString", "AnotherMockString" });
+            }
         }
     }
 }
