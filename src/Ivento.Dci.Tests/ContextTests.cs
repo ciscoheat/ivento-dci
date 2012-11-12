@@ -495,11 +495,51 @@ namespace Ivento.Dci.Tests
                 }
             }
 
+            class AnotherResolver
+            {
+                private readonly MockDependencyResolver _innerResolver;
+
+                public AnotherResolver()
+                {
+                    _innerResolver = new MockDependencyResolver();
+                }
+
+                public object GetService(Type serviceType)
+                {
+                    return _innerResolver.GetService(serviceType);
+                }
+
+                public IEnumerable<object> GetServices(Type serviceType)
+                {
+                    return _innerResolver.GetServices(serviceType);
+                }
+            }
+
             [Test]
             public void ShouldSetTheDependencyResolverSoItCanBeUsedInContext()
             {
                 // Arrange
                 var di = new MockDependencyResolver();
+
+                // Act
+                Context.Initialize.SetDependencyResolver(di);
+
+                // Assert
+                Context.Resolve<DciContext>().Should().Be.Null();
+                Context.ResolveAll<DciContext>().Count().Should().Equal(0);
+
+                Context.Resolve<string>().Should().Equal("MockString");
+                Context.ResolveAll<string>().Should().Equal(new[] { "MockString", "AnotherMockString" });
+
+                Context.Resolve(typeof(string)).Should().Equal("MockString");
+                Context.ResolveAll(typeof(string)).Should().Equal(new[] { "MockString", "AnotherMockString" });
+            }
+
+            [Test]
+            public void ShouldDuckTypeIfThePassedObjectImplementsTheInterface()
+            {
+                // Arrange
+                var di = new AnotherResolver();
 
                 // Act
                 Context.Initialize.SetDependencyResolver(di);
