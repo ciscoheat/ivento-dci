@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 
@@ -8,6 +10,7 @@ namespace Ivento.Dci
     public sealed class Context
     {
         private static Func<Stack> _stackAccessor;
+        public static IDependencyResolver DependencyResolver { get; private set; }
 
         // Thread-safe singleton
         private static readonly Lazy<ContextInitialization> InitializeLazy = new Lazy<ContextInitialization>(() => new ContextInitialization());
@@ -15,7 +18,7 @@ namespace Ivento.Dci
 
         private const string ContextMethodDefaultExecutionName = "Execute";
         private static string _contextMethodExecutionName = ContextMethodDefaultExecutionName;
-
+        
         /// <summary>
         /// Return the current Context, ensuring that an object is the same as a Context property.
         /// </summary>
@@ -100,13 +103,16 @@ namespace Ivento.Dci
             }
 
             /// <summary>
-            /// Clears the Context, so it can be initialized again. Also, the Context Execution name
-            /// is set to "Execute" again.
+            /// Clears the Context, so it can be initialized again: 
+            /// - Clear stack accessor
+            /// - Reset method execution name to 'Execute'
+            /// - Clear Dependency resolver.
             /// </summary>
             public void Clear()
             {
                 _stackAccessor = null;
                 _contextMethodExecutionName = ContextMethodDefaultExecutionName;
+                DependencyResolver = null;
             }
 
             /// <summary>
@@ -120,6 +126,25 @@ namespace Ivento.Dci
                     throw new ArgumentException("Context has already been initialized.");
 
                 _contextMethodExecutionName = methodName;
+            }
+
+            /// <summary>
+            /// Set Dependency Resolver, so it can be used like Context.DependencyResolver.GetService(...)
+            /// </summary>
+            public void SetDependencyResolver(IDependencyResolver dependencyResolver)
+            {
+                if (_stackAccessor != null)
+                    throw new ArgumentException("Context has already been initialized.");
+
+                DependencyResolver = dependencyResolver;
+            }
+
+            /// <summary>
+            /// Set Dependency Resolver using duck typing, so it can be used like Context.DependencyResolver.GetService(...)
+            /// </summary>
+            public void SetDependencyResolver(object dependencyResolver)
+            {
+                SetDependencyResolver(dependencyResolver.ActLike<IDependencyResolver>());
             }
         }
 
@@ -188,5 +213,33 @@ namespace Ivento.Dci
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Resolves singly registered services that support arbitrary object creation.
+    /// </summary>
+    /// <remarks>
+    /// Identical to System.Web.Mvc.IDependencyResolver
+    /// http://msdn.microsoft.com/en-us/library/system.web.mvc.idependencyresolver(v=vs.98).aspx
+    /// </remarks>
+    public interface IDependencyResolver
+    {
+        object GetService(Type serviceType);
+        IEnumerable<object> GetServices(Type serviceType);
+    }
+
+    public static class DependencyResolverExtensions
+    {
+        public static TService GetService<TService>(this IDependencyResolver resolver) 
+            where TService : class
+        {
+            return (TService)resolver.GetService(typeof(TService));
+        }
+
+        public static IEnumerable<TService> GetServices<TService>(this IDependencyResolver resolver) 
+            where TService : class
+        {
+            return resolver.GetServices(typeof(TService)).Cast<TService>();
+        }
     }
 }
