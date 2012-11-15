@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using Ivento.Dci.Examples.Djikstra.Data;
 using System.Linq;
 
@@ -19,33 +20,63 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
         #region Roles and Role Contracts
 
         internal TentativeDistanceRole TentativeDistance { get; private set; }
-        public class TentativeDistanceRole : Dictionary<Node, int>
+        public class TentativeDistanceRole
         {
+            private readonly Dictionary<Node, int> _tentativeDistances;
+
             /// <summary>
             /// Assign to every node a tentative distance value: 
             /// Set it to zero for our initial node and to infinity for all other nodes.
             /// </summary>
-            public TentativeDistanceRole(IEnumerable<Node> nodes, Node origin) 
-                : base(nodes.ToDictionary(n => n, n => ManhattanGeometry.Infinity))
+            public TentativeDistanceRole(IEnumerable<Node> nodes, Node origin)
             {
-                this[origin] = 0;
+                _tentativeDistances = nodes.ToDictionary(n => n, n => ManhattanGeometry.Infinity);
+                _tentativeDistances[origin] = 0;
+            }
+
+            // The Actual Role Contract, setting distances for the nodes:
+
+            public int this[Node n]
+            {
+                get { return _tentativeDistances[n]; }
+                set { _tentativeDistances[n] = value; }
             }
         }
 
         internal UnvisitedRole Unvisited { get; private set; }
-        public class UnvisitedRole : HashSet<Node>
+        public class UnvisitedRole : IEnumerable<Node>
         {
+            private readonly HashSet<Node> _unvisited;
+
             /// <summary>
             /// A set of the unvisited nodes called the unvisited set consisting of all the nodes 
             /// except the initial node.
             /// </summary>
-            public UnvisitedRole(IEnumerable<Node> collection, Node origin) : base(collection)
+            public UnvisitedRole(IEnumerable<Node> collection, Node origin)
             {
-                Remove(origin);
+                _unvisited = new HashSet<Node>(collection);
+                _unvisited.Remove(origin);
+            }
+
+            // Role Contract for the Unvisited role.
+
+            public void Remove(Node node)
+            {
+                _unvisited.Remove(node);
+            }
+
+            public IEnumerator<Node> GetEnumerator()
+            {
+                return _unvisited.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
             }
         }
 
-        // The Current node plays three different roles: CurrentIntersection, DistanceGraph and Neighbor.
+        // The Current node plays two different roles: CurrentIntersection and DistanceGraph.
         // They only have methodful roles so they are implemented as an empty interface.
         internal Node Current { get; private set; }
 
@@ -55,7 +86,7 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
         internal DistanceGraphRole DistanceGraph { get { return Current.ActLike<DistanceGraphRole>(); } }
         public interface DistanceGraphRole {}
 
-        internal NeighborRole Neighbor { get { return Current.ActLike<NeighborRole>(); } }
+        // The Neighbor Role is played by nodes to the Current role.
         public interface NeighborRole {}
 
         // The Map role implements from the ManhattanGeometry entity.
