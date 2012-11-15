@@ -5,7 +5,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
     /// </summary>
     public sealed class MoneyTransfer
     {
-        #region Roles and Role Contracts        
+        #region Roles and Role Contracts
 
         // Roles are an identifier within the Context.
         // The first role of the MoneyTransfer Context is SourceAccount.
@@ -25,9 +25,13 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
             void Withdraw(decimal amount);
         }
 
+        // Also note the naming convention for roles: If the role name is "ROLE",
+        // the Role Contract type is "ROLERole".
+
         // The second role of the MoneyTransfer Context is DestinationAccount.
         // Same as for the SourceAccount role, if you reason about Roles you
-        // speak only about their names, not their types.
+        // speak only about their names, not their types. This concept is more 
+        // obvious in the Transfer method of the source account below.
         //                              vvvvvvvvvvvvvvvvvv
         internal DestinationAccountRole DestinationAccount { get; set; }
 
@@ -99,7 +103,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         public static void Transfer(this MoneyTransfer.SourceAccountRole sourceAccount)
         {
             // First get a reference to the context, MoneyTransfer.
-            // The two parameters is a sanity check that the extension parameter for 
+            // The two parameters are a sanity check that the extension parameter for 
             // the Role "sourceAccount" is actually the same as the Context property.
             //
             // Using this overload of Context.Current, you can be sure that "sourceAccount"
