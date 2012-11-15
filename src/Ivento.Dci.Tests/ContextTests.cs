@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Ivento.Dci.Abstract;
 using NUnit.Framework;
 using Should.Fluent;
 

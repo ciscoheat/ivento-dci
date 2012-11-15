@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ivento.Dci
+namespace Ivento.Dci.Abstract
 {
     /// <summary>
     /// Resolves singly registered services that support arbitrary object creation.

@@ -2,9 +2,14 @@
 using System.Collections;
 using System.Reflection;
 using System.Threading;
+using Ivento.Dci.Abstract;
 
 namespace Ivento.Dci
 {
+    /// <summary>
+    /// Implementation of the DCI Context accessor.
+    /// For common usage, use the static methods in the Context class.
+    /// </summary>
     public sealed class DciContext
     {
         private Func<Stack> _stackAccessor;

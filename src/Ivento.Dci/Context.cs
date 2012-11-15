@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Ivento.Dci.Abstract;
 
 namespace Ivento.Dci
 {
+    /// <summary>
+    /// Context accessor and executing environment.
+    /// </summary>
     public sealed class Context
     {
         // Thread-safe singleton
