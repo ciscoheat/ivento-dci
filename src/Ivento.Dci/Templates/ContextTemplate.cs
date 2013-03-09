@@ -38,8 +38,8 @@
         private void BindRoles(object roleName, object anotherRoleName)
         {
             // Bind RolePlayers to Roles
-            RoleName = roleName.ActLike<RoleNameRole>();
-            AnotherRoleName = anotherRoleName.ActLike<AnotherRoleNameRole>();
+            RoleName = (RoleNameRole)roleName;
+            AnotherRoleName = (AnotherRoleNameRole)anotherRoleName;
         }
 
         #endregion

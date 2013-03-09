@@ -1,11 +1,14 @@
 ﻿using System;
+using Ivento.Dci.Examples.Djikstra.Contexts;
 
 namespace Ivento.Dci.Examples.Djikstra.Data
 {
     /// <summary>
     /// A node is equal another if they have the same name.
     /// </summary>
-    public class Node : IEquatable<Node>
+    public class Node : IEquatable<Node>,
+        CalculateShortestPath.CurrentIntersectionRole, CalculateShortestPath.DistanceGraphRole, 
+        CalculateShortestPath.NeighborRole, CalculateShortestPath.CurrentRole
     {
         public string Name { get; set; }
 

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Reflection;
 using System.Threading;
+using ImpromptuInterface;
 using Ivento.Dci.Abstract;
 
 namespace Ivento.Dci

@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Ivento.Dci.Examples.Djikstra.Contexts;
 
 namespace Ivento.Dci.Examples.Djikstra.Data
 {
-    public class ManhattanGeometry
+    public class ManhattanGeometry :
+        CalculateShortestPath.MapRole
     {
         public const int Infinity = Int32.MaxValue / 4;
 
