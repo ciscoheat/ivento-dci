@@ -12,7 +12,9 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
     /// methods required to play Roles in the MoneyTransfer and PayBills Context.
     /// (Deposit and Withdraw)
     /// </summary>
-    public sealed class Account
+    public sealed class Account :
+        MoneyTransfer.SourceAccountRole, MoneyTransfer.DestinationAccountRole,
+        PayBills.SourceAccountRole
     {
         #region Roles and Role Contracts
 
@@ -21,9 +23,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         // Since no Methodful Roles are using the Ledgers role from a 
         // Context method, it can be private.
 
-        private LedgersRole Ledgers { get; set; }
-        public interface LedgersRole : ICollection<LedgerEntry>
-        {}
+        private ICollection<LedgerEntry> Ledgers { get; set; }
 
         #endregion
 
@@ -39,7 +39,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
 
         private void BindRoles(ICollection<LedgerEntry> ledgers)
         {
-            Ledgers = ledgers.ActLike<LedgersRole>();
+            Ledgers = ledgers;
         }
 
         #endregion
@@ -83,7 +83,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         /// <summary>
         /// Changing the account amount means adding an entry to the Ledgers.
         /// </summary>
-        public static void AddEntry(this Account.LedgersRole ledgers, string message, decimal amount)
+        public static void AddEntry(this ICollection<LedgerEntry> ledgers, string message, decimal amount)
         {
             ledgers.Add(new LedgerEntry { Message = message, Amount = amount });
         }
@@ -91,7 +91,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         /// <summary>
         /// The Account balance is the sum of all Ledger amounts.
         /// </summary>
-        public static decimal Balance(this Account.LedgersRole ledgers)
+        public static decimal Balance(this ICollection<LedgerEntry> ledgers)
         {
             return ledgers.Sum(e => e.Amount);
         }

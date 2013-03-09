@@ -55,20 +55,27 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         // There can be multiple constructors with different ways of retreiving the objects
         // needed for the binding (database lookup, web service, etc), but there can only be 
         // one BindRoles method, which does the final Role binding.
-        public MoneyTransfer(Account source, Account destination, decimal amount)
+
+        public MoneyTransfer(PayBills.SourceAccountRole source, Account destination, decimal amount)
         {
             // All the roles are of the correct type for binding, so do it right away.
             BindRoles(source, destination, amount);
         }
 
-        private void BindRoles(Account source, Account destination, decimal amount)
+        public MoneyTransfer(SourceAccountRole source, DestinationAccountRole destination, decimal amount)
+        {
+            // All the roles are of the correct type for binding, so do it right away.
+            BindRoles(source, destination, amount);
+        }
+
+        private void BindRoles(object source, object destination, decimal amount)
         {
             // Make the RolePlayers act the Roles they are supposed to.
             // Using the ActLike<T> extension method, objects will behave like an interface without 
             // implementing it. This avoids the classes outside the context getting polluted with 
             // interface implementations of the Role Contracts.
-            SourceAccount = source.ActLike<SourceAccountRole>();
-            DestinationAccount = destination.ActLike<DestinationAccountRole>();
+            SourceAccount = (SourceAccountRole)source;
+            DestinationAccount = (DestinationAccountRole)destination;
             Amount = amount;
         }
 
@@ -110,7 +117,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
             // and "context.SourceAccount" is the same object. Unless you make a big mistake 
             // in the Context class that is nearly always the case though, so it can 
             // be called without parameters for a simpler syntax.
-            var context = Context.Current<MoneyTransfer>(sourceAccount, c => c.SourceAccount);
+            var c = Context.Current<MoneyTransfer>(sourceAccount, ctx => ctx.SourceAccount);
 
             // Now when we have the context available, it's time for action.
             // The transfer is very simplified here, it just deposits money in the
@@ -121,8 +128,8 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
             // what should happen. Reasoning about this part of the code is easy 
             // and gives a nice view how the system works.
 
-            context.DestinationAccount.Deposit(context.Amount);
-            context.SourceAccount.Withdraw(context.Amount);
+            c.DestinationAccount.Deposit(c.Amount);
+            c.SourceAccount.Withdraw(c.Amount);
         }
     }
 
