@@ -12,12 +12,12 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
     /// </summary>
     public sealed class PayBills
     {
-        #region Roles and Role Contracts
+        #region Roles and RoleInterfaces
 
         // First role for PayBills - The Account that should pay the bills.
-        // Its Role Contract declares that it must support Withdrawing money
+        // Its RoleInterface declares that it must support Withdrawing money
         // and read the balance.
-        internal SourceAccountRole SourceAccount { get; private set; }
+        internal SourceAccountRole SourceAccount { get; set; }
         public interface SourceAccountRole
         {
             void Withdraw(decimal amount);
@@ -25,15 +25,17 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         }
 
         // Second role is the Creditors, a list of entities that will receive
-        // payment from the SourceAccount Role. Using a simple interface inheritance
-        // for the Role Contract.
-        internal IEnumerable<Creditor> Creditors { get; private set; }
+        // payment from the SourceAccount Role. Using an empty interface
+        // for the RoleInterface. Even if there are no RoleMethods
+        // or interface members, it's consistent and can be quickly extended when needed.
+        internal CreditorsRole Creditors { get; set; }
+        public interface CreditorsRole : IEnumerable<Creditor> {}
 
         #endregion
 
         #region Constructors and Role bindings
 
-        public PayBills(SourceAccountRole source, IEnumerable<Creditor> creditors)
+        public PayBills(SourceAccountRole source, CreditorsRole creditors)
         {
             BindRoles(source, creditors);
         }
@@ -41,16 +43,16 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         private void BindRoles(object source, object creditors)
         {
             SourceAccount = (SourceAccountRole)source;
-            Creditors = (IEnumerable<Creditor>)creditors;
+            Creditors = (CreditorsRole)creditors;
         }
 
         #endregion
 
-        #region Context members
+        #region Interactions
 
         public void Execute()
         {
-            // As always, executing the Methodful Role with the static
+            // As always, executing the RoleMethod with the static
             // Context.Execute, supplying "this" as second argument
             // for setting the context.
             Context.Execute(SourceAccount.PayBills, this);
@@ -59,9 +61,9 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         #endregion
     }
 
-    #region Methodful Roles
+    #region RoleMethods
 
-    static class PayBillsMethodfulRoles
+    static class PayBillsRoleMethods
     {
         /// <summary>
         /// Use case implementation of PayBills.
@@ -71,7 +73,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
             // Get the current Context first.
             var c = Context.Current<PayBills>(sourceAccount, ct => ct.SourceAccount);
 
-            // Get the current Creditor list, enumerating it to a list so it's not modified.
+            // Get the current Creditor list, enumerating it to a list so it's not modified during the operation.
             var creditors = c.Creditors.ToList();
 
             // If not enough money to pay all creditors, don't pay anything.
@@ -84,9 +86,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
 
             creditors.ForEach(creditor =>
             {
-                // For each creditor, create a MoneyTransfer Context. Because the Context requires an Account
-                // object and sourceAccount is a SourceAccountRole, use the IsA<T> extension method
-                // to get the original Account object.
+                // For each creditor, create a MoneyTransfer Context.
                 var transferContext = new MoneyTransfer(sourceAccount, creditor.Account, creditor.AmountOwed);
 
                 // When the whole context object can be supplied to Context.Execute, there

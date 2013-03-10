@@ -8,20 +8,19 @@
     /// </summary>
     public sealed class ContextTemplate
     {
-        #region Roles and Role Contracts
+        #region Roles and RoleInterfaces
 
-        // Note the naming convention: "ROLE" for the identifier, "ROLERole" for the Role Contract.
+        // Note the naming convention: "NAME" for the identifier, "NAMERole" for the RoleInterface.
 
-        // In this case: RoleName and RoleNameRole
-        internal RoleNameRole RoleName { get; private set; }
-        public interface RoleNameRole
+        internal NameRole Name { get; private set; }
+        public interface NameRole
         {
             decimal SomeProperty { get; }
         }
 
-        // Role name: AnotherRoleName, Contract type: AnotherRoleNameRole
-        internal AnotherRoleNameRole AnotherRoleName { get; private set; }
-        public interface AnotherRoleNameRole
+        // Role: AnotherName, RoleInterface: AnotherNameRole
+        internal AnotherNameRole AnotherName { get; private set; }
+        public interface AnotherNameRole
         {
             void SomeMethod();
         }
@@ -38,41 +37,41 @@
         private void BindRoles(object roleName, object anotherRoleName)
         {
             // Bind RolePlayers to Roles
-            RoleName = (RoleNameRole)roleName;
-            AnotherRoleName = (AnotherRoleNameRole)anotherRoleName;
+            Name = (NameRole)roleName;
+            AnotherName = (AnotherNameRole)anotherRoleName;
         }
 
         #endregion
 
-        #region Context members
+        #region Interactions
 
         public void Execute()
         {
-            // Execute the Methodful Role with the static Context.Execute, supplying 
+            // Execute the RoleMethod with the static Context.Execute, supplying 
             // "this" as second argument for setting the context.
-            Context.Execute(RoleName.DoSomething, this);
+            Context.Execute(Name.DoSomething, this);
         }
 
         #endregion
     }
 
-    #region Methodful Roles
+    #region RoleMethods
 
-    static class ContextTemplateMethodfulRoles
+    static class ContextTemplateRoleMethods
     {
         /// <summary>
         /// Use case implementation of ContextTemplate.
         /// </summary>
-        public static void DoSomething(this ContextTemplate.RoleNameRole roleName)
+        public static void DoSomething(this ContextTemplate.NameRole nameRoleName)
         {
             // Get the current Context. Optional arguments to make sure that the 
             // underlying object is the same as the Context Role.
-            var context = Context.Current<ContextTemplate>(roleName, c => c.RoleName);
+            var context = Context.Current<ContextTemplate>(nameRoleName, c => c.Name);
 
             // Finally, implement the use case with the Context Roles.
 
-            if(roleName.SomeProperty > 0)
-                context.AnotherRoleName.SomeMethod();
+            if(nameRoleName.SomeProperty > 0)
+                context.AnotherName.SomeMethod();
         }
     }
 

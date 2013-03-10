@@ -16,56 +16,51 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         MoneyTransfer.SourceAccountRole, MoneyTransfer.DestinationAccountRole,
         PayBills.SourceAccountRole
     {
-        #region Roles and Role Contracts
+        #region Roles and RoleInterfaces
 
         // Ledgers is the only Role played in this Context.
         // Note that the Role Player is just inheriting another interface.
-        // Since no Methodful Roles are using the Ledgers role from a 
-        // Context method, it can be private.
-
-        private ICollection<LedgerEntry> Ledgers { get; set; }
+        internal LedgersRole Ledgers { get; set; }
+        public interface LedgersRole : ICollection<LedgerEntry> {}
 
         #endregion
 
         #region Constructors and Role bindings
 
-        // A simple binding, only making the ledgers act like the
-        // AccountLedgers Role Contract.
-
-        public Account(ICollection<LedgerEntry> ledgers)
+        public Account(LedgersRole ledgers)
         {
             BindRoles(ledgers);
         }
 
-        private void BindRoles(ICollection<LedgerEntry> ledgers)
+        private void BindRoles(object ledgers)
         {
-            Ledgers = ledgers;
+            Ledgers = (LedgersRole)ledgers;
         }
 
         #endregion
 
-        #region Context members
+        #region Interactions
 
-        // Theoretically, these methods and properties should be invoked with the 
-        // static Context.Execute() for a true Context execution. But since they 
-        // are only using Roles within their own Context, and so are the 
-        // Methodful Roles, it's not needed.
+        // Interactions must use one of the Context.Execute/ExecuteAndReturn overloads.
 
-        public decimal Balance
-        {
-            get { return Ledgers.Balance(); }
-        }
-
+        // In this case, an Action since it's very simple. Remember to specify "this" 
+        // as context in the second parameter.
         public void Deposit(decimal amount)
         {
-            Ledgers.AddEntry("Depositing", amount);
+            Context.Execute(() => Ledgers.AddEntry("Depositing", amount), this);
         }
 
         public void Withdraw(decimal amount)
         {
-            Ledgers.AddEntry("Withdrawing", -amount);
+            Context.Execute(() => Ledgers.AddEntry("Withdrawing", -amount), this);
         }
 
+        public decimal Balance
+        {
+            get { return Context.ExecuteAndReturn(() => Ledgers.Balance(), this); }
+        }
+
+        // This is just a get accessor for a Role, so it doesn't need Context.Execute.
         public IEnumerable<LedgerEntry> LedgersList
         {
             get { return Ledgers; }
@@ -74,16 +69,16 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         #endregion
     }
 
-    #region Methodful Roles
+    #region RoleMethods
 
-    static class AccountMethodfulRoles
+    static class AccountRoleMethods
     {
         // Use case implementations of the Account.
 
         /// <summary>
         /// Changing the account amount means adding an entry to the Ledgers.
         /// </summary>
-        public static void AddEntry(this ICollection<LedgerEntry> ledgers, string message, decimal amount)
+        public static void AddEntry(this Account.LedgersRole ledgers, string message, decimal amount)
         {
             ledgers.Add(new LedgerEntry { Message = message, Amount = amount });
         }
@@ -91,7 +86,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer.Contexts
         /// <summary>
         /// The Account balance is the sum of all Ledger amounts.
         /// </summary>
-        public static decimal Balance(this ICollection<LedgerEntry> ledgers)
+        public static decimal Balance(this Account.LedgersRole ledgers)
         {
             return ledgers.Sum(e => e.Amount);
         }

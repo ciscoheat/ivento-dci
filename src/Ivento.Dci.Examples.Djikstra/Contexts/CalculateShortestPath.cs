@@ -16,7 +16,7 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
     /// </remarks>
     public sealed class CalculateShortestPath
     {
-        #region Roles and Role Contracts
+        #region Roles and RoleInterfaces
 
         internal IDictionary<Node, int> TentativeDistance { get; private set; }
 
@@ -26,19 +26,31 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
             void Remove(Node node);
         }
 
-        // The Current node plays two different roles: CurrentIntersection and DistanceGraph.
-        // They only have methodful roles so they are implemented as an empty interface.
-        internal Node Current { get; private set; }
-        public interface CurrentRole {}
+        internal CurrentRole Current { get; private set; }
+        public interface CurrentRole
+        {
+            string Name { get; }
+        }
 
-        internal CurrentIntersectionRole CurrentIntersection { get { return Current; } }
-        public interface CurrentIntersectionRole {}
+        // The Current node also plays two other roles: CurrentIntersection and DistanceGraph.
 
-        internal DistanceGraphRole DistanceGraph { get { return Current; } }
-        public interface DistanceGraphRole {}
+        internal CurrentIntersectionRole CurrentIntersection { get; private set; }
+        public interface CurrentIntersectionRole
+        {
+            string Name { get; }
+        }
+
+        internal DistanceGraphRole DistanceGraph { get; private set; }
+        public interface DistanceGraphRole
+        {
+            string Name { get; }
+        }
 
         // The Neighbor Role is played by nodes to the Current role.
-        public interface NeighborRole {}
+        public interface NeighborRole
+        {
+            string Name { get; }
+        }
 
         // The Map role implements from the ManhattanGeometry entity.
         internal MapRole Map { get; private set; }
@@ -87,7 +99,12 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
             _destination = target;
 
             // Bind RolePlayers to Roles
-            Current = origin; // Set the initial node as current. 
+
+            // Set the initial node as current. 
+            Current = origin; 
+            CurrentIntersection = origin;
+            DistanceGraph = origin;
+
             Map = geometry;
 
             // A set of the unvisited nodes called the unvisited set consisting of all the nodes 
@@ -103,7 +120,7 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
 
         #endregion
 
-        #region Context members
+        #region Interactions
 
         public List<Node> Execute()
         {
@@ -125,11 +142,11 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
             {
                 foreach (var neighbor in unvisitedNeighbors)
                 {                    
-                    var netDistance = DistanceGraph.TentativeDistance() + Map.DistanceBetween(Current, neighbor);
+                    var netDistance = DistanceGraph.TentativeDistance() + Map.DistanceBetween((Node)Current, neighbor);
 
                     if (neighbor.RelableNodeAs(netDistance))
                     {
-                        _pathTo[neighbor] = Current;
+                        _pathTo[neighbor] = (Node)Current;
                     }
                 }
             }
@@ -137,7 +154,7 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
             // When we are done considering all of the neighbors of the current node, mark the current node 
             // as visited and remove it from the unvisited set. A visited node will never be checked again; 
             // its distance recorded now is final and minimal.
-            Unvisited.Remove(Current);
+            Unvisited.Remove((Node)Current);
 
             // If the destination node has been marked visited (when planning a route between two specific nodes) 
             // or if the smallest tentative distance among the nodes in the unvisited set is infinity (when 
@@ -188,9 +205,9 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
         #endregion
     }
 
-    #region Methodful Roles
+    #region RoleMethods
 
-    static class CalculateShortestPathMethodfulRoles
+    static class CalculateShortestPathRoleMethods
     {
         #region Map
 
@@ -253,18 +270,18 @@ namespace Ivento.Dci.Examples.Djikstra.Contexts
 
         public static Node SouthNeighbor(this CalculateShortestPath.CurrentIntersectionRole currentIntersection)
         {
-            var context = Context.Current<CalculateShortestPath>(currentIntersection, c => c.CurrentIntersection);
+            var c = Context.Current<CalculateShortestPath>(currentIntersection, ct => ct.CurrentIntersection);
 
-            var neighborOf = context.Map.SouthNeighborOf;
-            return neighborOf.ContainsKey(context.Current) ? neighborOf[context.Current] : null;
+            var neighborOf = c.Map.SouthNeighborOf;
+            return neighborOf.ContainsKey((Node)c.Current) ? neighborOf[(Node)c.Current] : null;
         }
 
         public static Node EastNeighbor(this CalculateShortestPath.CurrentIntersectionRole currentIntersection)
         {
-            var context = Context.Current<CalculateShortestPath>(currentIntersection, c => c.CurrentIntersection);
+            var c = Context.Current<CalculateShortestPath>(currentIntersection, ct => ct.CurrentIntersection);
 
-            var neighborOf = context.Map.EastNeighborOf;
-            return neighborOf.ContainsKey(context.Current) ? neighborOf[context.Current] : null;
+            var neighborOf = c.Map.EastNeighborOf;
+            return neighborOf.ContainsKey((Node)c.Current) ? neighborOf[(Node)c.Current] : null;
         }
 
         #endregion

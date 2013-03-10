@@ -18,8 +18,10 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             // so follow the code for an in-code tutorial.
             //
 
-            // The Context must be initialized before use, depending on the type of application. 
-            // In a simple application like this, the InStaticScope initalization 
+            // For terminology, see http://folk.uio.no/trygver/2011/DCI-Glossary.pdf
+
+            // For this library, the Context must be initialized before use, depending on the type 
+            // of application. In a simple application like this, the InStaticScope initalization 
             // can be used. It means that the context will be shared between threads.
             //
             // Multithreading can create unpredictable effects when switching Context, so if the 
@@ -29,17 +31,20 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             // method should be called, using for example HttpContext.Items for scope.
             Context.Initialize.InStaticScope();
 
-            // Create some accounts that will be used for the examples.
+            // Start by creating some accounts that will be used for the examples.
             // Note that the Account is not a Data entity but a Context. The account balance
             // is calculated using the underlying real Data entity objects, LedgerEntry.
-            var source = new Account(new List<LedgerEntry>
+
+            // Also note the LedgersList, a class defined at the bottom of this file, that is implementing the
+            // RoleInterface needed to play the Role of Ledgers in the Account context.
+            var source = new Account(new LedgersList
                                          {
                                              new LedgerEntry { Message = "Start", Amount = 0m },
                                              new LedgerEntry { Message = "First deposit", Amount = 1000m }
                                          }
                                      );
 
-            var destination = new Account(new List<LedgerEntry>());
+            var destination = new Account(new LedgersList());
 
             // Output a menu
             Console.WriteLine("DCI Examples");
@@ -121,19 +126,21 @@ namespace Ivento.Dci.Examples.MoneyTransfer
         private static void PayBills(ref Account source, bool enoughMoney = true)
         {
             // Create some creditors that wants money from the supplied account.
-            var creditors = new List<Creditor>
+            // CreditorsList is a class similar to LedgersList, defined to play the role of 
+            // "Creditors" in the PayBills context.
+            var creditors = new CreditorsList
                                 {
                                     new Creditor
                                         {
                                             Name = "Baker",
-                                            Account = new Account(new Collection<LedgerEntry>()),
+                                            Account = new Account(new LedgersList()),
                                             AmountOwed = 150m
                                         },
 
                                     new Creditor
                                         {
                                             Name = "Butcher",
-                                            Account = new Account(new Collection<LedgerEntry>()),
+                                            Account = new Account(new LedgersList()),
                                             AmountOwed = 200m
                                         }
                                 };
@@ -141,7 +148,7 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             // Create a new account with little money if enoughMoney is false.
             if (!enoughMoney)
             {
-                source = new Account(new List<LedgerEntry>
+                source = new Account(new LedgersList
                                          {
                                              new LedgerEntry {Message = "From mom", Amount = 80m}
                                          }
@@ -175,4 +182,16 @@ namespace Ivento.Dci.Examples.MoneyTransfer
             Console.WriteLine("Source account           " + source.Balance.ToString("c"));
         }
     }
+
+    /// <summary>
+    /// Class for the LedgersRole in the Account context.
+    /// </summary>
+    public class LedgersList : Collection<LedgerEntry>, Account.LedgersRole
+    {}
+
+    /// <summary>
+    /// Class for the CreditorsRole in the PayBills context.
+    /// </summary>
+    public class CreditorsList : List<Creditor>, PayBills.CreditorsRole
+    {}
 }
