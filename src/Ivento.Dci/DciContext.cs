@@ -56,7 +56,7 @@ namespace Ivento.Dci
         {
             var currentContext = Current<T>();
 
-            if(!role.Equals(contextRole(currentContext)))
+            if(!object.ReferenceEquals(role, contextRole(currentContext)))
                 throw new InvalidOperationException("Role is not bound to Context properly.");
 
             return currentContext;
@@ -208,7 +208,7 @@ namespace Ivento.Dci
                 var method = context.GetType().GetMethod(_contextMethodExecutionName, BindingFlags.Public | BindingFlags.Instance);
 
                 if (method == null)
-                    throw new TargetException("No Execute method on Context object.");
+                    throw new TargetException("No '"+_contextMethodExecutionName+"' method on Context object.");
 
                 return method.Invoke(context, null);
             }
